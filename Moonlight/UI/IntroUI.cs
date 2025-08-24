@@ -12,6 +12,8 @@ using Moonlight.MoonlightConfiguration.Models;
 using Moonlight.Services;
 using Moonlight.Services.Mediator;
 using Moonlight.Services.ServerConfiguration;
+using Moonlight.MNet;
+using System.Net;
 using System.Numerics;
 using System.Text.RegularExpressions;
 
@@ -34,15 +36,22 @@ public partial class IntroUi : WindowMediatorSubscriberBase
     private string[]? _tosParagraphs;
     private bool _useLegacyLogin = false;
 
+    private readonly MNetDevicePairingService _mnetPairing;
+    private CancellationTokenSource _mnetPairingCts = new();
+    private string _mnetUserCode = string.Empty;
+    private string _mnetVerificationUri = string.Empty;
+    private string _mnetDeviceCode = string.Empty;
+
     public IntroUi(ILogger<IntroUi> logger, UiSharedService uiShared, MoonlightConfigService configService,
         CacheMonitor fileCacheManager, ServerConfigurationManager serverConfigurationManager, MoonlightMediator moonlightMediator,
-        PerformanceCollectorService performanceCollectorService, DalamudUtilService dalamudUtilService) : base(logger, moonlightMediator, "Moonlight Setup", performanceCollectorService)
+        PerformanceCollectorService performanceCollectorService, DalamudUtilService dalamudUtilService, MNetDevicePairingService mnetPairing) : base(logger, moonlightMediator, "Moonlight Setup", performanceCollectorService)
     {
         _uiShared = uiShared;
         _configService = configService;
         _cacheMonitor = fileCacheManager;
         _serverConfigurationManager = serverConfigurationManager;
         _dalamudUtilService = dalamudUtilService;
+        _mnetPairing = mnetPairing;
         IsOpen = false;
         ShowCloseButton = false;
         RespectCloseHotkey = false;
@@ -207,19 +216,65 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                 ImGui.TextUnformatted("Service Registration");
             ImGui.Separator();
             UiSharedService.TextWrapped("To be able to use Moonlight you will have to register an account.");
-            UiSharedService.TextWrapped("For the official Moonlight Servers the account creation will be handled on the official Moonlight Discord. Due to security risks for the server, there is no way to handle this sensibly otherwise.");
-            UiSharedService.TextWrapped("If you want to register at the main server \"" + WebAPI.ApiController.MainServer + "\" join the Discord and follow the instructions as described in #Moonlight-service.");
-
-            if (ImGui.Button("Join the Moonlight Discord"))
+            if (ImGui.Button("Register with .mNet"))
             {
-                Util.OpenLink("https://discord.gg/mpNdkrTRjW");
+                Util.OpenLink("http://mnet.live");
             }
 
-            UiSharedService.TextWrapped("For all other non official services you will have to contact the appropriate service provider how to obtain a secret key.");
+            ImGui.SameLine();
+            if (ImGui.Button("Pair with mNet (device)"))
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        _mnetPairingCts.Cancel();
+                        _mnetPairingCts = new();
+                        var started = await _mnetPairing.StartAsync(_mnetPairingCts.Token).ConfigureAwait(false);
+                        _mnetUserCode = started.userCode;
+                        _mnetVerificationUri = started.verificationUri;
+                        _mnetDeviceCode = started.deviceCode;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogWarning(ex, "Failed to start mNet pairing");
+                    }
+                });
+            }
 
-            UiSharedService.DistanceSeparator();
+            if (!string.IsNullOrEmpty(_mnetUserCode))
+            {
+                ImGui.Separator();
+                UiSharedService.ColorTextWrapped($"mNet device pairing in progress. Code: {_mnetUserCode}", ImGuiColors.DalamudYellow);
+                if (ImGui.Button("Open mNet verification"))
+                {
+                    Util.OpenLink(_mnetVerificationUri);
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Poll now"))
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var key = await _mnetPairing.PollForKeyAsync(_mnetDeviceCode, _mnetPairingCts.Token).ConfigureAwait(false);
+                            if (!string.IsNullOrEmpty(key))
+                            {
+                                await _mnetPairing.SaveKeyAndConfirmAsync(key!, _mnetPairingCts.Token).ConfigureAwait(false);
+                                _mnetUserCode = string.Empty;
+                                _mnetVerificationUri = string.Empty;
+                                _mnetDeviceCode = string.Empty;
+                                _ = Task.Run(() => _uiShared.ApiController.CreateConnectionsAsync());
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogWarning(ex, "mNet polling failed");
+                        }
+                    });
+                }
+            }
 
-            UiSharedService.TextWrapped("Once you have registered you can connect to the service using the tools provided below.");
 
             int serverIdx = 0;
             var selectedServer = _serverConfigurationManager.GetServerByIndex(serverIdx);
@@ -238,7 +293,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                     selectedServer = _serverConfigurationManager.GetServerByIndex(serverIdx);
                     _useLegacyLogin = !selectedServer.UseOAuth2;
 
-                    if (ImGui.Checkbox("Use Legacy Login with Secret Key", ref _useLegacyLogin))
+                    if (ImGui.Checkbox("Use .mNet Key", ref _useLegacyLogin))
                     {
                         _serverConfigurationManager.GetServerByIndex(serverIdx).UseOAuth2 = !_useLegacyLogin;
                         _serverConfigurationManager.Save();

@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Reflection;
+using Moonlight.MNet;
 
 namespace Moonlight.WebAPI.SignalR;
 
@@ -20,7 +21,9 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
     private readonly ServerConfigurationManager _serverManager;
     private readonly ConcurrentDictionary<JwtIdentifier, string> _tokenCache = new();
 
-    public TokenProvider(ILogger<TokenProvider> logger, ServerConfigurationManager serverManager, DalamudUtilService dalamudUtil, MoonlightMediator moonlightMediator, HttpClient httpClient)
+    private readonly MNetConfigService _mnetConfigService;
+
+    public TokenProvider(ILogger<TokenProvider> logger, ServerConfigurationManager serverManager, DalamudUtilService dalamudUtil, MoonlightMediator moonlightMediator, HttpClient httpClient, MNetConfigService mnetConfigService)
     {
         _logger = logger;
         _serverManager = serverManager;
@@ -28,6 +31,7 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
         var ver = Assembly.GetExecutingAssembly().GetName().Version;
         Mediator = moonlightMediator;
         _httpClient = httpClient;
+        _mnetConfigService = mnetConfigService;
         Mediator.Subscribe<DalamudLogoutMessage>(this, (_) =>
         {
             _lastJwtIdentifier = null;
@@ -66,7 +70,10 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
                     tokenUri = MoonlightAuth.AuthFullPath(new Uri(_serverManager.CurrentApiUrl
                         .Replace("wss://", "https://", StringComparison.OrdinalIgnoreCase)
                         .Replace("ws://", "http://", StringComparison.OrdinalIgnoreCase)));
-                    var secretKey = _serverManager.GetSecretKey(out _)!;
+                    // Prefer global mNet key when present
+                    var secretKey = _mnetConfigService.Current.ApiKey;
+                    if (string.IsNullOrEmpty(secretKey)) secretKey = _serverManager.GetSecretKey(out _);
+                    if (string.IsNullOrEmpty(secretKey)) throw new InvalidOperationException("No secret key available (mNet/global or server-specific)");
                     var auth = secretKey.GetHash256();
                     _logger.LogInformation("Sending SecretKey Request to server with auth {auth}", string.Join("", identifier.SecretKeyOrOAuth.Take(10)));
                     result = await _httpClient.PostAsync(tokenUri, new FormUrlEncodedContent(
@@ -171,8 +178,10 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
             }
             else
             {
-                var secretKey = _serverManager.GetSecretKey(out _)
-                    ?? throw new InvalidOperationException("Requested SecretKey but received null");
+                var secretKey = _mnetConfigService.Current.ApiKey;
+                if (string.IsNullOrEmpty(secretKey))
+                    secretKey = _serverManager.GetSecretKey(out _)
+                        ?? throw new InvalidOperationException("Requested SecretKey but received null");
 
                 jwtIdentifier = new(_serverManager.CurrentApiUrl,
                                     playerIdentifier,

@@ -30,6 +30,7 @@ using Moonlight.UI.Handlers;
 using Moonlight.WebAPI;
 using Moonlight.WebAPI.Files;
 using Moonlight.WebAPI.SignalR;
+using Moonlight.MNet;
 
 namespace Moonlight;
 
@@ -191,6 +192,12 @@ public sealed class Plugin : IDalamudPlugin
             collection.AddSingleton<ConfigurationSaveService>();
 
             collection.AddSingleton<HubFactory>();
+
+            // mNet services
+            collection.AddSingleton((s) => new MNetConfigService(pluginInterface.ConfigDirectory.FullName));
+            collection.AddSingleton<MNetClient>();
+            collection.AddSingleton<MNetDevicePairingService>();
+            collection.AddSingleton<IConfigService<IMoonlightConfiguration>>(s => s.GetRequiredService<MNetConfigService>());
 
             // add scoped services
             collection.AddScoped<DrawEntityFactory>();
