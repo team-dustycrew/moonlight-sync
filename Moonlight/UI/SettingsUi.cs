@@ -1640,7 +1640,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
                         _serverConfigurationManager.Save();
                     }
                     var key = item.Value.Key;
-                    if (ImGui.InputText("Secret Key", ref key, 64))
+                    if (ImGui.InputText("Secret Key", ref key, 128))
                     {
                         item.Value.Key = key;
                         _serverConfigurationManager.Save();

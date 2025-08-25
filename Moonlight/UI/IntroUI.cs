@@ -95,14 +95,14 @@ public partial class IntroUi : WindowMediatorSubscriberBase
             {
                 _readFirstPage = true;
 #if !DEBUG
-                _timeoutTask = Task.Run(async () =>
+                _timeoutTask = Task.Run((Func<Task>)(async () =>
                 {
                     for (int i = 60; i > 0; i--)
                     {
                         _timeoutLabel = $"{Strings.ToS.ButtonWillBeAvailableIn} {i}s";
                         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
                     }
-                });
+                }));
 #else
                 _timeoutTask = Task.CompletedTask;
 #endif
@@ -224,7 +224,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
             ImGui.SameLine();
             if (ImGui.Button("Pair with mNet (device)"))
             {
-                _ = Task.Run(async () =>
+                _ = Task.Run((Func<Task>)(async () =>
                 {
                     try
                     {
@@ -237,9 +237,9 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                     }
                     catch (Exception ex)
                     {
-                        Logger.LogWarning(ex, "Failed to start mNet pairing");
+                        _logger.LogWarning(ex, "Failed to start mNet pairing");
                     }
-                });
+                }));
             }
 
             if (!string.IsNullOrEmpty(_mnetUserCode))
@@ -253,7 +253,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                 ImGui.SameLine();
                 if (ImGui.Button("Poll now"))
                 {
-                    _ = Task.Run(async () =>
+                    _ = Task.Run((Func<Task>)(async () =>
                     {
                         try
                         {
@@ -264,14 +264,14 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                                 _mnetUserCode = string.Empty;
                                 _mnetVerificationUri = string.Empty;
                                 _mnetDeviceCode = string.Empty;
-                                _ = Task.Run(() => _uiShared.ApiController.CreateConnectionsAsync());
+                                _ = Task.Run((Func<Task>)(() => _uiShared.ApiController.CreateConnectionsAsync()));
                             }
                         }
-                        catch (Exception ex)
+                        catch (Exception ex)  
                         {
-                            Logger.LogWarning(ex, "mNet polling failed");
+                            _logger.LogWarning(ex, "mNet polling failed");
                         }
-                    });
+                    }));
                 }
             }
 
@@ -318,16 +318,12 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                 ImGui.TextUnformatted(text);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(UiSharedService.GetWindowContentRegionWidth() - ImGui.GetWindowContentRegionMin().X - buttonWidth - textSize.X);
-                ImGui.InputText("", ref _secretKey, 64);
-                if (_secretKey.Length > 0 && _secretKey.Length != 64)
+                ImGui.InputText("", ref _secretKey, 128);
+                if (_secretKey.Length > 0 && !IsValidSecretKey(_secretKey))
                 {
-                    UiSharedService.ColorTextWrapped("Your secret key must be exactly 64 characters long. Don't enter your Lodestone auth here.", ImGuiColors.DalamudRed);
+                    UiSharedService.ColorTextWrapped("Invalid key. Use either a 64‑hex key or an alphanumeric key (32–128 chars).", ImGuiColors.DalamudRed);
                 }
-                else if (_secretKey.Length == 64 && !HexRegex().IsMatch(_secretKey))
-                {
-                    UiSharedService.ColorTextWrapped("Your secret key can only contain ABCDEF and the numbers 0-9.", ImGuiColors.DalamudRed);
-                }
-                else if (_secretKey.Length == 64)
+                else if (IsValidSecretKey(_secretKey))
                 {
                     ImGui.SameLine();
                     if (ImGui.Button(buttonText))
@@ -351,7 +347,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                             };
                         }
                         _secretKey = string.Empty;
-                        _ = Task.Run(() => _uiShared.ApiController.CreateConnectionsAsync());
+                        _ = Task.Run((Func<Task>)(() => _uiShared.ApiController.CreateConnectionsAsync()));
                     }
                 }
             }
@@ -391,7 +387,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                     {
                         if (_uiShared.IconTextButton(Dalamud.Interface.FontAwesomeIcon.Link, "Connect to Service"))
                         {
-                            _ = Task.Run(() => _uiShared.ApiController.CreateConnectionsAsync());
+                            _ = Task.Run((Func<Task>)(() => _uiShared.ApiController.CreateConnectionsAsync()));
                         }
                     }
                     if (string.IsNullOrEmpty(auth.UID))
@@ -416,6 +412,20 @@ public partial class IntroUi : WindowMediatorSubscriberBase
         _tosParagraphs = [Strings.ToS.Paragraph1, Strings.ToS.Paragraph2, Strings.ToS.Paragraph3, Strings.ToS.Paragraph4, Strings.ToS.Paragraph5, Strings.ToS.Paragraph6];
     }
 
-    [GeneratedRegex("^([A-F0-9]{2})+")]
-    private static partial Regex HexRegex();
+    private static bool IsValidSecretKey(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key)) return false;
+        if (Hex64Regex().IsMatch(key)) return true;
+        if (BaseUrlKeyRegex().IsMatch(key)) return true;
+        return false;
+    }
+
+    [GeneratedRegex("^[A-Fa-f0-9]{64}$")]
+    private static partial Regex Hex64Regex();
+
+    // Accept common mNet/base64url-style keys (letters, digits, underscore, dash)
+    [GeneratedRegex("^[A-Za-z0-9_-]{20,128}$")]
+    private static partial Regex BaseUrlKeyRegex();
+
+    
 }
