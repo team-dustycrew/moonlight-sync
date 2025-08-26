@@ -15,17 +15,17 @@ public class FileTransferOrchestrator : DisposableMediatorSubscriberBase
     private readonly ConcurrentDictionary<Guid, bool> _downloadReady = new();
     private readonly HttpClient _httpClient;
     private readonly MoonlightConfigService _moonlightConfig;
+    private readonly Moonlight.Services.ServerConfiguration.ServerConfigurationManager _serverConfigurationManager;
     private readonly object _semaphoreModificationLock = new();
-    private readonly TokenProvider _tokenProvider;
     private int _availableDownloadSlots;
     private SemaphoreSlim _downloadSemaphore;
     private int CurrentlyUsedDownloadSlots => _availableDownloadSlots - _downloadSemaphore.CurrentCount;
 
     public FileTransferOrchestrator(ILogger<FileTransferOrchestrator> logger, MoonlightConfigService moonlightConfig,
-        MoonlightMediator mediator, TokenProvider tokenProvider, HttpClient httpClient) : base(logger, mediator)
+        MoonlightMediator mediator, Moonlight.Services.ServerConfiguration.ServerConfigurationManager serverConfigurationManager, HttpClient httpClient) : base(logger, mediator)
     {
         _moonlightConfig = moonlightConfig;
-        _tokenProvider = tokenProvider;
+        _serverConfigurationManager = serverConfigurationManager;
         _httpClient = httpClient;
         var ver = Assembly.GetExecutingAssembly().GetName().Version;
         _httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Moonlight", ver!.Major + "." + ver!.Minor + "." + ver!.Build));
@@ -143,11 +143,15 @@ public class FileTransferOrchestrator : DisposableMediatorSubscriberBase
         return Math.Clamp(dividedLimit, 1, long.MaxValue);
     }
 
-    private async Task<HttpResponseMessage> SendRequestInternalAsync(HttpRequestMessage requestMessage,
-        CancellationToken? ct = null, HttpCompletionOption httpCompletionOption = HttpCompletionOption.ResponseContentRead)
+    private async Task<HttpResponseMessage> SendRequestInternalAsync(HttpRequestMessage requestMessage, CancellationToken? ct = null, HttpCompletionOption httpCompletionOption = HttpCompletionOption.ResponseContentRead)
     {
-        var token = await _tokenProvider.GetToken().ConfigureAwait(false);
-        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        // Use API key header instead of Bearer tokens
+        var key = _serverConfigurationManager.GetMNetKey();
+        if (string.IsNullOrEmpty(key) == false)
+        {
+            if (requestMessage.Headers.Contains("X-MNet-Key")) requestMessage.Headers.Remove("X-MNet-Key");
+            requestMessage.Headers.Add("X-MNet-Key", key);
+        }
 
         if (requestMessage.Content != null && requestMessage.Content is not StreamContent && requestMessage.Content is not ByteArrayContent)
         {

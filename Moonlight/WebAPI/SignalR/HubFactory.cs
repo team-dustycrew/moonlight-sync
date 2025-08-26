@@ -142,14 +142,11 @@ public class HubFactory : MediatorSubscriberBase
             // options.AccessTokenProvider = () => _tokenProvider.GetOrUpdateToken(ct);
             options.Transports = transportType;
 
-            // Add API key header for non-OAuth2 authentication
-            if (!_serverConfigurationManager.CurrentServer.UseOAuth2)
+            // Always add API key header for negotiation/authentication
+            var apiKey = _serverConfigurationManager.GetMNetKey();
+            if (string.IsNullOrEmpty(apiKey) == false)
             {
-                var apiKey = _serverConfigurationManager.GetMNetKey();
-                if (string.IsNullOrEmpty(apiKey) == false)
-                {
-                    options.Headers.Add("X-MNet-Key", apiKey);
-                }
+                options.Headers.Add("X-MNet-Key", apiKey);
             }
         })
         // Configure MessagePack protocol with compression and custom resolvers

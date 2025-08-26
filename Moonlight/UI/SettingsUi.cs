@@ -1951,7 +1951,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
         ImGui.SameLine();
         if (ImGui.Button("Moonlight Discord"))
         {
-            Util.OpenLink("https://discord.gg/mpNdkrTRjW");
+            Util.OpenLink("https://discord.gg/jpXGvpDKUf");
         }
         ImGui.Separator();
         if (ImGui.BeginTabBar("mainTabBar"))
