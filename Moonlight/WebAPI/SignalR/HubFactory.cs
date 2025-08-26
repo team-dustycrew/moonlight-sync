@@ -139,7 +139,7 @@ public class HubFactory : MediatorSubscriberBase
         _instance = new HubConnectionBuilder().WithUrl(_serverConfigurationManager.CurrentApiUrl + IMoonLightHub.Path, options =>
         {
             // Configure authentication token provider
-            options.AccessTokenProvider = () => _tokenProvider.GetOrUpdateToken(ct);
+            // options.AccessTokenProvider = () => _tokenProvider.GetOrUpdateToken(ct);
             options.Transports = transportType;
 
             // Add API key header for non-OAuth2 authentication
