@@ -147,6 +147,8 @@ public class HubFactory : MediatorSubscriberBase
             var apiKey = _serverConfigurationManager.GetMNetKey();
             if (string.IsNullOrEmpty(apiKey) == false)
             {
+                // Sanitize API key to prevent header injection
+                apiKey = apiKey.Replace("\r", string.Empty).Replace("\n", string.Empty);
                 options.Headers.Add("X-MNet-Key", apiKey);
                 // Ensure header presence and log each outgoing negotiate/connect request
                 options.HttpMessageHandlerFactory = (inner) => new HeaderInjectingHandler(inner, apiKey, Logger);
@@ -156,7 +158,6 @@ public class HubFactory : MediatorSubscriberBase
                     try { ws.SetRequestHeader("X-MNet-Key", apiKey); }
                     catch { /* ignore */ }
                 };
-                Logger.LogDebug("Added X-MNet-Key header for SignalR connection (first 6): {part}", string.Join("", apiKey.Take(6)));
             }
             else
             {
@@ -258,8 +259,8 @@ public class HubFactory : MediatorSubscriberBase
                 }
             }
             
-            // Log the request details for debugging purposes
-            _logger.LogTrace("SignalR HTTP {method} {uri} (X-MNet-Key present: {present})", request.Method, request.RequestUri, request.Headers.Contains("X-MNet-Key"));
+            // Log without exposing header values
+            _logger.LogTrace("SignalR HTTP {method} {uri} (auth header present: {present})", request.Method, request.RequestUri, request.Headers.Contains("X-MNet-Key"));
             
             // Continue with the request using the base handler
             return base.SendAsync(request, cancellationToken);
