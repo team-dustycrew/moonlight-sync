@@ -11,6 +11,7 @@ public class PlayerPerformanceConfig : IMoonlightConfiguration
     public bool AutoPausePlayersExceedingThresholds { get; set; } = false;
     public bool AutoPausePlayersWithPreferredPermissionsExceedingThresholds { get; set; } = false;
     public int VRAMSizeAutoPauseThresholdMiB { get; set; } = 550;
-    public int TrisAutoPauseThresholdThousands { get; set; } = 250;
+    public int TrisAutoPauseThresholdThousands { get; set; } = 400;
+    public bool ShowAutoPauseNotificationsOnlyForSyncshellMembers { get; set; } = true;
     public List<string> UIDsToIgnore { get; set; } = new();
 }

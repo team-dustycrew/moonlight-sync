@@ -1236,7 +1236,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
             ImGui.SameLine();
             ImGui.Text("(thousand triangles)");
             _uiShared.DrawHelpText("When a loading in player and their triangle count exceeds this amount, automatically pauses the synced player." + UiSharedService.TooltipSeparator
-                + "Default: 250 thousand");
+                + "Default: 400 thousand");
         }
         ImGui.Dummy(new Vector2(10));
         _uiShared.BigText("Whitelisted UIDs");
@@ -1367,6 +1367,14 @@ public class SettingsUi : WindowMediatorSubscriberBase
             }
             ImGui.Separator();
         }
+
+        var syncshellOnlyNotifs = _playerPerformanceConfigService.Current.ShowAutoPauseNotificationsOnlyForSyncshellMembers;
+        if (ImGui.Checkbox("Show auto-pause notifications for Syncshell members only", ref syncshellOnlyNotifs))
+        {
+            _playerPerformanceConfigService.Current.ShowAutoPauseNotificationsOnlyForSyncshellMembers = syncshellOnlyNotifs;
+            _playerPerformanceConfigService.Save();
+        }
+        _uiShared.DrawHelpText("When enabled (default), only show auto-pause notifications for users who are members of a Syncshell you are in.");
 
         _uiShared.BigText("Service & Character Settings");
         ImGuiHelpers.ScaledDummy(new Vector2(5, 5));

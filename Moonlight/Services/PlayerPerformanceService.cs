@@ -138,11 +138,16 @@ public class PlayerPerformanceService
         if (CheckForThreshold(config.AutoPausePlayersExceedingThresholds, config.TrisAutoPauseThresholdThousands * 1000,
             triUsage, config.AutoPausePlayersWithPreferredPermissionsExceedingThresholds, isPrefPerm))
         {
-            _mediator.Publish(new NotificationMessage($"{pair.PlayerName} ({pair.UserData.AliasOrUID}) automatically paused",
-                $"Player {pair.PlayerName} ({pair.UserData.AliasOrUID}) exceeded your configured triangle auto pause threshold (" +
-                $"{triUsage}/{config.TrisAutoPauseThresholdThousands * 1000} triangles)" +
-                $" and has been automatically paused.",
-                MoonlightConfiguration.Models.NotificationType.Warning));
+            // Only notify if configured to do so for syncshell members. If the pair is not in any group, skip when the scope is syncshell-only.
+            bool isSyncshellMember = pair.UserPair.Groups != null && pair.UserPair.Groups.Any();
+            if (!config.ShowAutoPauseNotificationsOnlyForSyncshellMembers || isSyncshellMember)
+            {
+                _mediator.Publish(new NotificationMessage($"{pair.PlayerName} ({pair.UserData.AliasOrUID}) automatically paused",
+                    $"Player {pair.PlayerName} ({pair.UserData.AliasOrUID}) exceeded your configured triangle auto pause threshold (" +
+                    $"{triUsage}/{config.TrisAutoPauseThresholdThousands * 1000} triangles)" +
+                    $" and has been automatically paused.",
+                    MoonlightConfiguration.Models.NotificationType.Warning));
+            }
 
             _mediator.Publish(new EventMessage(new Event(pair.PlayerName, pair.UserData, nameof(PlayerPerformanceService), EventSeverity.Warning,
                 $"Exceeds triangle threshold: automatically paused ({triUsage}/{config.TrisAutoPauseThresholdThousands * 1000} triangles)")));
@@ -214,11 +219,15 @@ public class PlayerPerformanceService
         if (CheckForThreshold(config.AutoPausePlayersExceedingThresholds, config.VRAMSizeAutoPauseThresholdMiB * 1024 * 1024,
             vramUsage, config.AutoPausePlayersWithPreferredPermissionsExceedingThresholds, isPrefPerm))
         {
-            _mediator.Publish(new NotificationMessage($"{pair.PlayerName} ({pair.UserData.AliasOrUID}) automatically paused",
-                $"Player {pair.PlayerName} ({pair.UserData.AliasOrUID}) exceeded your configured VRAM auto pause threshold (" +
-                $"{UiSharedService.ByteToString(vramUsage, addSuffix: true)}/{config.VRAMSizeAutoPauseThresholdMiB}MiB)" +
-                $" and has been automatically paused.",
-                MoonlightConfiguration.Models.NotificationType.Warning));
+            bool isSyncshellMember = pair.UserPair.Groups != null && pair.UserPair.Groups.Any();
+            if (!config.ShowAutoPauseNotificationsOnlyForSyncshellMembers || isSyncshellMember)
+            {
+                _mediator.Publish(new NotificationMessage($"{pair.PlayerName} ({pair.UserData.AliasOrUID}) automatically paused",
+                    $"Player {pair.PlayerName} ({pair.UserData.AliasOrUID}) exceeded your configured VRAM auto pause threshold (" +
+                    $"{UiSharedService.ByteToString(vramUsage, addSuffix: true)}/{config.VRAMSizeAutoPauseThresholdMiB}MiB)" +
+                    $" and has been automatically paused.",
+                    MoonlightConfiguration.Models.NotificationType.Warning));
+            }
 
             _mediator.Publish(new PauseMessage(pair.UserData));
 
