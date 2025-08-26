@@ -294,13 +294,9 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                 {
                     try
                     {
-                        var key = await _mnetPairing.PollForKeyAsync(_mnetDeviceCode, _mnetPairingCts.Token).ConfigureAwait(false);
                         if (!string.IsNullOrEmpty(_mNetKey))
                         {
                             await _mnetPairing.SaveKeyAndConfirmAsync(_mNetKey!, _mnetPairingCts.Token).ConfigureAwait(false);
-                            _mnetUserCode = string.Empty;
-                            _mnetVerificationUri = string.Empty;
-                            _mnetDeviceCode = string.Empty;
                             _ = Task.Run((Func<Task>)(() => _uiShared.ApiController.CreateConnectionsAsync()));
                         }
                     }

@@ -13,6 +13,7 @@ using MoonLight.API.Data.Comparer;
 using MoonLight.API.Routes;
 using Moonlight.FileCache;
 using Moonlight.Interop.Ipc;
+using Moonlight.MNet;
 using Moonlight.MoonlightConfiguration;
 using Moonlight.MoonlightConfiguration.Models;
 using Moonlight.PlayerData.Handlers;
@@ -48,6 +49,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
     private readonly FileUploadManager _fileTransferManager;
     private readonly FileTransferOrchestrator _fileTransferOrchestrator;
     private readonly IpcManager _ipcManager;
+    private readonly MNetDevicePairingService _mnetPairing;
     private readonly PairManager _pairManager;
     private readonly PerformanceCollectorService _performanceCollector;
     private readonly PlayerPerformanceConfigService _playerPerformanceConfigService;
@@ -58,6 +60,12 @@ public class SettingsUi : WindowMediatorSubscriberBase
     private bool _deleteAccountPopupModalShown = false;
     private bool _deleteFilesPopupModalShown = false;
     private string _lastTab = string.Empty;
+    private string _mNetKey = string.Empty;
+    private CancellationTokenSource _mnetPairingCts = new();
+    private string _mnetUserCode = string.Empty;
+    private string _mnetVerificationUri = string.Empty;
+    private string _mnetDeviceCode = string.Empty;
+
     private bool? _notesSuccessfullyApplied = null;
     private bool _overwriteExistingLabels = false;
     private bool _readClearCache = false;
@@ -70,6 +78,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
     public SettingsUi(ILogger<SettingsUi> logger,
         UiSharedService uiShared, MoonlightConfigService configService,
         PairManager pairManager,
+        MNetDevicePairingService mnetPairing,
         ServerConfigurationManager serverConfigurationManager,
         PlayerPerformanceConfigService playerPerformanceConfigService,
         MoonlightMediator mediator, PerformanceCollectorService performanceCollector,
@@ -82,6 +91,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
     {
         _configService = configService;
         _pairManager = pairManager;
+        _mnetPairing = mnetPairing;
         _serverConfigurationManager = serverConfigurationManager;
         _playerPerformanceConfigService = playerPerformanceConfigService;
         _performanceCollector = performanceCollector;
@@ -1290,6 +1300,88 @@ public class SettingsUi : WindowMediatorSubscriberBase
         _lastTab = "Service Settings";
         if (ApiController.ServerAlive)
         {
+            _uiShared.BigText(".mNet Settings");
+            if (ImGui.Button("Open .mNet Website"))
+            {
+                Util.OpenLink("http://mnet.live");
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Pair"))
+            {
+                _ = Task.Run((Func<Task>)(async () =>
+                {
+                    try
+                    {
+                        _mnetPairingCts.Cancel();
+                        _mnetPairingCts = new();
+                        var started = await _mnetPairing.StartAsync(_mnetPairingCts.Token).ConfigureAwait(false);
+                        _mnetUserCode = started.userCode;
+                        _mnetVerificationUri = started.verificationUri;
+                        _mnetDeviceCode = started.deviceCode;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to start mNet pairing");
+                    }
+                }));
+            }
+            
+            if (!string.IsNullOrEmpty(_mnetUserCode))
+            {
+                ImGui.Separator();
+                UiSharedService.ColorTextWrapped($"mNet device pairing in progress. Code: {_mnetUserCode}", ImGuiColors.DalamudYellow);
+                if (ImGui.Button("Open mNet verification"))
+                {
+                    Util.OpenLink(_mnetVerificationUri);
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Poll now"))
+                {
+                    _ = Task.Run((Func<Task>)(async () =>
+                    {
+                        try
+                        {
+                            var key = await _mnetPairing.PollForKeyAsync(_mnetDeviceCode, _mnetPairingCts.Token).ConfigureAwait(false);
+                            if (!string.IsNullOrEmpty(key))
+                            {
+                                await _mnetPairing.SaveKeyAndConfirmAsync(key!, _mnetPairingCts.Token).ConfigureAwait(false);
+                                _mnetUserCode = string.Empty;
+                                _mnetVerificationUri = string.Empty;
+                                _mnetDeviceCode = string.Empty;
+                                _ = Task.Run((Func<Task>)(() => _uiShared.ApiController.CreateConnectionsAsync()));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "mNet polling failed");
+                        }
+                    }));
+                }
+            }
+
+            ImGui.Text("- Enter .mNet Key -");
+            ImGui.InputText("", ref _mNetKey, 128);
+            ImGui.SameLine();
+            
+            if (ImGui.Button("Verify"))
+            {
+                _ = Task.Run((Func<Task>)(async () =>
+                {
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(_mNetKey))
+                        {
+                            await _mnetPairing.SaveKeyAndConfirmAsync(_mNetKey!, _mnetPairingCts.Token).ConfigureAwait(false);
+                            _ = Task.Run((Func<Task>)(() => _uiShared.ApiController.CreateConnectionsAsync()));
+                        }
+                    }
+                    catch (Exception ex)  
+                    {
+                        _logger.LogWarning(ex, "Failed to verify .mNet Auth Key");
+                    }
+                }));
+            }
+            
             _uiShared.BigText("Service Actions");
             ImGuiHelpers.ScaledDummy(new Vector2(5, 5));
             if (ImGui.Button("Delete all my files"))
