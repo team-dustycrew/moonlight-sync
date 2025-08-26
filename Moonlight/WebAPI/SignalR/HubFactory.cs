@@ -11,6 +11,7 @@ using Moonlight.Services;
 using Moonlight.Services.Mediator;
 using Moonlight.Services.ServerConfiguration;
 using Moonlight.WebAPI.SignalR.Utils;
+using System.Text;
 
 namespace Moonlight.WebAPI.SignalR;
 
@@ -147,6 +148,19 @@ public class HubFactory : MediatorSubscriberBase
             if (string.IsNullOrEmpty(apiKey) == false)
             {
                 options.Headers.Add("X-MNet-Key", apiKey);
+                // Ensure header presence and log each outgoing negotiate/connect request
+                options.HttpMessageHandlerFactory = (inner) => new HeaderInjectingHandler(inner, apiKey, Logger);
+                // Ensure header is also present on WebSocket upgrade
+                options.WebSocketConfiguration = ws =>
+                {
+                    try { ws.SetRequestHeader("X-MNet-Key", apiKey); }
+                    catch { /* ignore */ }
+                };
+                Logger.LogDebug("Added X-MNet-Key header for SignalR connection (first 6): {part}", string.Join("", apiKey.Take(6)));
+            }
+            else
+            {
+                Logger.LogWarning("No mNet API key configured; SignalR negotiation will likely be unauthorized");
             }
         })
         // Configure MessagePack protocol with compression and custom resolvers
@@ -188,6 +202,68 @@ public class HubFactory : MediatorSubscriberBase
         _isDisposed = false;
 
         return _instance;
+    }
+
+    /// <summary>
+    /// Custom HTTP message handler that injects authentication headers and ensures proper content for SignalR requests.
+    /// This handler intercepts HTTP requests made by the SignalR client and modifies them as needed.
+    /// </summary>
+    private sealed class HeaderInjectingHandler : DelegatingHandler
+    {
+        /// <summary>
+        /// The API key to inject into HTTP requests for authentication with the mNet service
+        /// </summary>
+        private readonly string _apiKey;
+        
+        /// <summary>
+        /// Logger instance for tracing HTTP request modifications and debugging
+        /// </summary>
+        private readonly ILogger _logger;
+        
+        /// <summary>
+        /// Initializes a new instance of the HeaderInjectingHandler class.
+        /// </summary>
+        /// <param name="innerHandler">The inner HTTP message handler to delegate to</param>
+        /// <param name="apiKey">The API key to inject into requests</param>
+        /// <param name="logger">Logger for tracing request modifications</param>
+        public HeaderInjectingHandler(HttpMessageHandler innerHandler, string apiKey, ILogger logger) : base(innerHandler)
+        {
+            _apiKey = apiKey;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Intercepts and modifies HTTP requests before they are sent.
+        /// Injects the X-MNet-Key header for authentication and ensures negotiate requests have proper JSON content.
+        /// </summary>
+        /// <param name="request">The HTTP request message to modify</param>
+        /// <param name="cancellationToken">Cancellation token for the request</param>
+        /// <returns>Task representing the HTTP response</returns>
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            // Inject the API key header if it's not already present and we have a valid key
+            if (request.Headers.Contains("X-MNet-Key") == false && string.IsNullOrEmpty(_apiKey) == false)
+            {
+                request.Headers.TryAddWithoutValidation("X-MNet-Key", _apiKey);
+            }
+
+            // Some servers expect a JSON body for negotiate requests, even if empty
+            // This ensures compatibility with SignalR negotiate endpoints that require content
+            if (request.Method == HttpMethod.Post && request.RequestUri != null && request.RequestUri.AbsolutePath.Contains("/negotiate", StringComparison.OrdinalIgnoreCase))
+            {
+                if (request.Content == null)
+                {
+                    // Set empty JSON object as content with proper content type
+                    request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
+                }
+            }
+            
+            // Log the request details for debugging purposes
+            _logger.LogTrace("SignalR HTTP {method} {uri} (X-MNet-Key present: {present})", request.Method, request.RequestUri, request.Headers.Contains("X-MNet-Key"));
+            
+            // Continue with the request using the base handler
+            return base.SendAsync(request, cancellationToken);
+        }
     }
 
     /// <summary>
