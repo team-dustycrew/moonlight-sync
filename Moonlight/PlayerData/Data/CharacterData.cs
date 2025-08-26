@@ -1,5 +1,5 @@
-﻿using Moonlight.API.Data;
-using Moonlight.API.Data.Enum;
+﻿using MoonLight.API.Data;
+using MoonLight.API.Data.Enum;
 
 namespace Moonlight.PlayerData.Data;
 

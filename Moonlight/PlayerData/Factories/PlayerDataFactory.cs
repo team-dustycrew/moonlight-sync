@@ -1,6 +1,6 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Data.Enum;
+using MoonLight.API.Data.Enum;
 using Moonlight.FileCache;
 using Moonlight.Interop.Ipc;
 using Moonlight.MoonlightConfiguration.Models;

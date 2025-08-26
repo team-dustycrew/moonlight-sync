@@ -1,5 +1,5 @@
-﻿using Moonlight.API.Data;
-using Moonlight.API.Dto.CharaData;
+﻿using MoonLight.API.Data;
+using MoonLight.API.Dto.CharaData;
 
 namespace Moonlight.Services.CharaData.Models;
 

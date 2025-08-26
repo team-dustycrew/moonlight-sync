@@ -3,7 +3,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface;
-using Moonlight.API.Dto.CharaData;
+using MoonLight.API.Dto.CharaData;
 using Moonlight.Services.CharaData.Models;
 using System.Numerics;
 

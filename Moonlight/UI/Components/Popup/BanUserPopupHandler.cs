@@ -1,6 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
-using Moonlight.API.Dto.Group;
+using MoonLight.API.Dto.Group;
 using Moonlight.PlayerData.Pairs;
 using Moonlight.Services.Mediator;
 using Moonlight.WebAPI;

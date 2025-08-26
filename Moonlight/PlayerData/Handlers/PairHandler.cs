@@ -1,8 +1,8 @@
 ﻿using Moonlight.Utils;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Data;
-using Moonlight.API.Data.Enum;
+using MoonLight.API.Data;
+using MoonLight.API.Data.Enum;
 using Moonlight.FileCache;
 using Moonlight.Interop.Ipc;
 using Moonlight.PlayerData.Factories;
@@ -14,8 +14,8 @@ using Moonlight.Services.ServerConfiguration;
 using Moonlight.WebAPI.Files;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using Enum_ObjectKind = Moonlight.API.Data.Enum.ObjectKind;
-using ObjectKind = Moonlight.API.Data.Enum.ObjectKind;
+using Enum_ObjectKind = MoonLight.API.Data.Enum.ObjectKind;
+using ObjectKind = MoonLight.API.Data.Enum.ObjectKind;
 
 namespace Moonlight.PlayerData.Handlers;
 

@@ -5,7 +5,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Moonlight.Utils;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Data.Enum;
+using MoonLight.API.Data.Enum;
 using Moonlight.FileCache;
 using Moonlight.Interop.Ipc;
 using Moonlight.MoonlightConfiguration;

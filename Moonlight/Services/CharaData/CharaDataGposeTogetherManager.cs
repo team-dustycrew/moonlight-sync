@@ -1,7 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Objects.SubKinds;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Data;
-using Moonlight.API.Dto.CharaData;
+using MoonLight.API.Data;
+using MoonLight.API.Dto.CharaData;
 using Moonlight.Interop;
 using Moonlight.Interop.Ipc;
 using Moonlight.Services.CharaData.Models;

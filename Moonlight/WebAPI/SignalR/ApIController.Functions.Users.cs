@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Data;
-using Moonlight.API.Dto;
-using Moonlight.API.Dto.User;
+using MoonLight.API.Data;
+using MoonLight.API.Dto;
+using MoonLight.API.Dto.User;
 using System.Text;
 
 namespace Moonlight.WebAPI;

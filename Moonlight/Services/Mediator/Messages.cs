@@ -1,8 +1,8 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
-using Moonlight.API.Data;
-using Moonlight.API.Dto;
-using Moonlight.API.Dto.CharaData;
-using Moonlight.API.Dto.Group;
+using MoonLight.API.Data;
+using MoonLight.API.Dto;
+using MoonLight.API.Dto.CharaData;
+using MoonLight.API.Dto.Group;
 using Moonlight.MoonlightConfiguration.Models;
 using Moonlight.PlayerData.Handlers;
 using Moonlight.PlayerData.Pairs;

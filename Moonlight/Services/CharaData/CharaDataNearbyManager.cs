@@ -1,6 +1,6 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Data;
+using MoonLight.API.Data;
 using Moonlight.Interop;
 using Moonlight.MoonlightConfiguration;
 using Moonlight.Services.CharaData.Models;

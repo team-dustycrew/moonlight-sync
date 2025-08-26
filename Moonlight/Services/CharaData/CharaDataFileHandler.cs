@@ -1,9 +1,9 @@
 ﻿using Dalamud.Game.ClientState.Objects.SubKinds;
 using K4os.Compression.LZ4.Legacy;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Data;
-using Moonlight.API.Data.Enum;
-using Moonlight.API.Dto.CharaData;
+using MoonLight.API.Data;
+using MoonLight.API.Data.Enum;
+using MoonLight.API.Dto.CharaData;
 using Moonlight.FileCache;
 using Moonlight.PlayerData.Factories;
 using Moonlight.PlayerData.Handlers;

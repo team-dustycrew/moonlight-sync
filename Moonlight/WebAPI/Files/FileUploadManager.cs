@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using Moonlight.API.Data;
-using Moonlight.API.Dto.Files;
-using Moonlight.API.Routes;
+using MoonLight.API.Data;
+using MoonLight.API.Dto.Files;
+using MoonLight.API.Routes;
 using Moonlight.FileCache;
 using Moonlight.MoonlightConfiguration;
 using Moonlight.Services.Mediator;

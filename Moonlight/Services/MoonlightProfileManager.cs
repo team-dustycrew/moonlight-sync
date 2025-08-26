@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using Moonlight.API.Data;
-using Moonlight.API.Data.Comparer;
+using MoonLight.API.Data;
+using MoonLight.API.Data.Comparer;
 using Moonlight.MoonlightConfiguration;
 using Moonlight.Services.Mediator;
 using Moonlight.WebAPI;

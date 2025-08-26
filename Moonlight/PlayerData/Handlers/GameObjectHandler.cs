@@ -5,8 +5,8 @@ using Moonlight.Services;
 using Moonlight.Services.Mediator;
 using System.Runtime.CompilerServices;
 using static FFXIVClientStructs.FFXIV.Client.Game.Character.DrawDataContainer;
-using Enum_ObjectKind = Moonlight.API.Data.Enum.ObjectKind;
-using ObjectKind = Moonlight.API.Data.Enum.ObjectKind;
+using Enum_ObjectKind = MoonLight.API.Data.Enum.ObjectKind;
+using ObjectKind = MoonLight.API.Data.Enum.ObjectKind;
 
 namespace Moonlight.PlayerData.Handlers;
 

@@ -7,7 +7,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Moonlight.Utils;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Dto.CharaData;
+using MoonLight.API.Dto.CharaData;
 using Moonlight.MoonlightConfiguration;
 using Moonlight.MoonlightConfiguration.Models;
 using Moonlight.PlayerData.Pairs;

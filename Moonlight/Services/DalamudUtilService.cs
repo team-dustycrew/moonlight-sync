@@ -14,7 +14,7 @@ using Lumina.Excel.Sheets;
 using Moonlight.Utils;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Dto.CharaData;
+using MoonLight.API.Dto.CharaData;
 using Moonlight.Interop;
 using Moonlight.MoonlightConfiguration;
 using Moonlight.PlayerData.Handlers;

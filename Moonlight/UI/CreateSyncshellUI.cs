@@ -1,9 +1,9 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
-using Moonlight.API.Data.Extensions;
+using MoonLight.API.Data.Extensions;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Dto.Group;
+using MoonLight.API.Dto.Group;
 using Moonlight.Services;
 using Moonlight.Services.Mediator;
 using Moonlight.WebAPI;

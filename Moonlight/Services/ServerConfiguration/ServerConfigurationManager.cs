@@ -1,7 +1,7 @@
 ﻿using Dalamud.Utility;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Routes;
+using MoonLight.API.Routes;
 using Moonlight.MoonlightConfiguration;
 using Moonlight.MoonlightConfiguration.Models;
 using Moonlight.Services.Mediator;

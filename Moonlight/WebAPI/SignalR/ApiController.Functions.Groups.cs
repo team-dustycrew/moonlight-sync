@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
-using Moonlight.API.Dto.Group;
+using MoonLight.API.Dto.Group;
 using Moonlight.WebAPI.SignalR.Utils;
 
 namespace Moonlight.WebAPI;

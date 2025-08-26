@@ -1,11 +1,11 @@
 ﻿using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Game.Text.SeStringHandling;
-using Moonlight.API.Data.Extensions;
+using MoonLight.API.Data.Extensions;
 using Moonlight.Utils;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Data;
-using Moonlight.API.Data.Enum;
-using Moonlight.API.Dto.User;
+using MoonLight.API.Data;
+using MoonLight.API.Data.Enum;
+using MoonLight.API.Dto.User;
 using Moonlight.PlayerData.Factories;
 using Moonlight.PlayerData.Handlers;
 using Moonlight.Services.Mediator;

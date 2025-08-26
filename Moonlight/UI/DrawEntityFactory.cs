@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using Moonlight.API.Dto.Group;
+using MoonLight.API.Dto.Group;
 using Moonlight.MoonlightConfiguration;
 using Moonlight.PlayerData.Pairs;
 using Moonlight.Services;

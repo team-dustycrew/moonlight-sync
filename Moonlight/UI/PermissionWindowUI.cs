@@ -1,10 +1,10 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using Moonlight.API.Data.Extensions;
+using MoonLight.API.Data.Extensions;
 using Moonlight.Utils;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Data.Enum;
+using MoonLight.API.Data.Enum;
 using Moonlight.PlayerData.Pairs;
 using Moonlight.Services;
 using Moonlight.Services.Mediator;

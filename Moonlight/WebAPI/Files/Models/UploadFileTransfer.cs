@@ -1,4 +1,4 @@
-﻿using Moonlight.API.Dto.Files;
+﻿using MoonLight.API.Dto.Files;
 
 namespace Moonlight.WebAPI.Files.Models;
 

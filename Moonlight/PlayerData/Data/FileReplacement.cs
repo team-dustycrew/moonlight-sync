@@ -1,4 +1,4 @@
-﻿using Moonlight.API.Data;
+﻿using MoonLight.API.Data;
 using System.Text.RegularExpressions;
 
 namespace Moonlight.PlayerData.Data;

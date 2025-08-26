@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.SignalR;
+using MoonLight.API.SignalR;
 using Moonlight.Services;
 using Moonlight.Services.Mediator;
 using Moonlight.Services.ServerConfiguration;
@@ -80,7 +80,7 @@ public class HubFactory : MediatorSubscriberBase
         Logger.LogDebug("Building new HubConnection using transport {transport}", transportType);
 
         _instance = new HubConnectionBuilder()
-            .WithUrl(_serverConfigurationManager.CurrentApiUrl + IMoonlightHub.Path, options =>
+            .WithUrl(_serverConfigurationManager.CurrentApiUrl + IMoonLightHub.Path, options =>
             {
                 options.AccessTokenProvider = () => _tokenProvider.GetOrUpdateToken(ct);
                 options.Transports = transportType;

@@ -1,10 +1,10 @@
 ﻿using Dalamud.Plugin.Services;
-using Moonlight.API.Data.Extensions;
+using MoonLight.API.Data.Extensions;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Data;
-using Moonlight.API.Data.Comparer;
-using Moonlight.API.Dto.Group;
-using Moonlight.API.Dto.User;
+using MoonLight.API.Data;
+using MoonLight.API.Data.Comparer;
+using MoonLight.API.Dto.Group;
+using MoonLight.API.Dto.User;
 using Moonlight.MoonlightConfiguration;
 using Moonlight.MoonlightConfiguration.Models;
 using Moonlight.PlayerData.Factories;

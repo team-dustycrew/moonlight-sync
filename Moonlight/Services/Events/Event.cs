@@ -1,4 +1,4 @@
-﻿using Moonlight.API.Data;
+﻿using MoonLight.API.Data;
 
 namespace Moonlight.Services.Events;
 

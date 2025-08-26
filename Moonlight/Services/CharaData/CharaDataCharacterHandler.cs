@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using Moonlight.API.Data.Enum;
+using MoonLight.API.Data.Enum;
 using Moonlight.Interop.Ipc;
 using Moonlight.PlayerData.Factories;
 using Moonlight.PlayerData.Handlers;

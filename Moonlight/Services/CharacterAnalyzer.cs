@@ -1,8 +1,8 @@
 ﻿using Lumina.Data.Files;
 using Moonlight.Utils;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Data;
-using Moonlight.API.Data.Enum;
+using MoonLight.API.Data;
+using MoonLight.API.Data.Enum;
 using Moonlight.FileCache;
 using Moonlight.Services.Mediator;
 using Moonlight.UI;

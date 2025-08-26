@@ -1,4 +1,4 @@
-﻿using Moonlight.API.Data.Enum;
+﻿using MoonLight.API.Data.Enum;
 
 namespace Moonlight.MoonlightConfiguration.Configurations;
 

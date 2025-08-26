@@ -2,7 +2,7 @@
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
-using Moonlight.API.Data.Extensions;
+using MoonLight.API.Data.Extensions;
 using Microsoft.Extensions.Logging;
 using Moonlight.MoonlightConfiguration;
 using Moonlight.PlayerData.Pairs;

@@ -5,4 +5,4 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "<Pending>", Scope = "member", Target = "~M:Moonlight.Services.CharaDataManager.AttachPoseData(Moonlight.API.Dto.CharaData.PoseEntry,Moonlight.Services.CharaData.Models.CharaDataExtendedUpdateDto)")]
+[assembly: SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "<Pending>", Scope = "member", Target = "~M:Moonlight.Services.CharaDataManager.AttachPoseData(MoonLight.API.Dto.CharaData.PoseEntry,Moonlight.Services.CharaData.Models.CharaDataExtendedUpdateDto)")]

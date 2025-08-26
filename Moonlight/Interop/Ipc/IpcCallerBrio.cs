@@ -2,7 +2,7 @@
 using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Dto.CharaData;
+using MoonLight.API.Dto.CharaData;
 using Moonlight.Services;
 using System.Numerics;
 using System.Text.Json.Nodes;

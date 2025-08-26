@@ -1,6 +1,6 @@
 ﻿using Dalamud.Utility;
 using Lumina.Excel.Sheets;
-using Moonlight.API.Dto.CharaData;
+using MoonLight.API.Dto.CharaData;
 using System.Globalization;
 using System.Numerics;
 using System.Text;

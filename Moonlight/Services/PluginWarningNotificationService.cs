@@ -1,5 +1,5 @@
-﻿using Moonlight.API.Data;
-using Moonlight.API.Data.Comparer;
+﻿using MoonLight.API.Data;
+using MoonLight.API.Data.Comparer;
 using Moonlight.Interop.Ipc;
 using Moonlight.MoonlightConfiguration;
 using Moonlight.MoonlightConfiguration.Models;

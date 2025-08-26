@@ -1,11 +1,11 @@
 ﻿using Dalamud.Utility;
-using Moonlight.API.Data.Extensions;
+using MoonLight.API.Data.Extensions;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Data;
-using Moonlight.API.Dto;
-using Moonlight.API.Dto.User;
-using Moonlight.API.SignalR;
+using MoonLight.API.Data;
+using MoonLight.API.Dto;
+using MoonLight.API.Dto.User;
+using MoonLight.API.SignalR;
 using Moonlight.MoonlightConfiguration;
 using Moonlight.MoonlightConfiguration.Models;
 using Moonlight.PlayerData.Pairs;
@@ -19,7 +19,7 @@ using System.Reflection;
 namespace Moonlight.WebAPI;
 
 #pragma warning disable MA0040
-public sealed partial class ApiController : DisposableMediatorSubscriberBase, IMoonlightHubClient
+public sealed partial class ApiController : DisposableMediatorSubscriberBase, IMoonLightHubClient
 {
     public const string MainServer = "Moonlight Server 1";
     public const string MainServiceUri = "wss://maretestapp-hvt4e.sevalla.app";
@@ -233,7 +233,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
 
                 var currentClientVer = Assembly.GetExecutingAssembly().GetName().Version!;
 
-                if (_connectionDto.ServerVersion != IMoonlightHub.ApiVersion)
+                if (_connectionDto.ServerVersion != IMoonLightHub.ApiVersion)
                 {
                     if (_connectionDto.CurrentClientVersion > currentClientVer)
                     {
@@ -511,7 +511,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
         {
             InitializeApiHooks();
             _connectionDto = await GetConnectionDtoAsync(publishConnected: false).ConfigureAwait(false);
-            if (_connectionDto.ServerVersion != IMoonlightHub.ApiVersion)
+            if (_connectionDto.ServerVersion != IMoonLightHub.ApiVersion)
             {
                 await StopConnectionAsync(ServerState.VersionMisMatch).ConfigureAwait(false);
                 return;

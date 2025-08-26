@@ -1,4 +1,4 @@
-﻿using Moonlight.API.Dto.CharaData;
+﻿using MoonLight.API.Dto.CharaData;
 using System.Collections.ObjectModel;
 
 namespace Moonlight.Services.CharaData.Models;

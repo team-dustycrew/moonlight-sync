@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Data;
-using Moonlight.API.Data.Enum;
-using Moonlight.API.Dto;
-using Moonlight.API.Dto.CharaData;
-using Moonlight.API.Dto.Group;
-using Moonlight.API.Dto.User;
+using MoonLight.API.Data;
+using MoonLight.API.Data.Enum;
+using MoonLight.API.Dto;
+using MoonLight.API.Dto.CharaData;
+using MoonLight.API.Dto.Group;
+using MoonLight.API.Dto.User;
 using Moonlight.MoonlightConfiguration.Models;
 using Moonlight.Services.Mediator;
 using static FFXIVClientStructs.FFXIV.Client.Game.UI.MapMarkerData.Delegates;

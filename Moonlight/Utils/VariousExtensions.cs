@@ -1,7 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Data;
-using Moonlight.API.Data.Enum;
+using MoonLight.API.Data;
+using MoonLight.API.Data.Enum;
 using Moonlight.PlayerData.Handlers;
 using Moonlight.PlayerData.Pairs;
 using System.Text.Json;

@@ -1,8 +1,8 @@
 ﻿using Moonlight.Services.CharaData.Models;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Data;
-using Moonlight.API.Dto.CharaData;
+using MoonLight.API.Data;
+using MoonLight.API.Dto.CharaData;
 
 namespace Moonlight.WebAPI;
 public partial class ApiController

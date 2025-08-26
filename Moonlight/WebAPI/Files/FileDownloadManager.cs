@@ -1,9 +1,9 @@
 ﻿using Dalamud.Utility;
 using K4os.Compression.LZ4.Legacy;
 using Microsoft.Extensions.Logging;
-using Moonlight.API.Data;
-using Moonlight.API.Dto.Files;
-using Moonlight.API.Routes;
+using MoonLight.API.Data;
+using MoonLight.API.Dto.Files;
+using MoonLight.API.Routes;
 using Moonlight.FileCache;
 using Moonlight.PlayerData.Handlers;
 using Moonlight.Services.Mediator;

@@ -1,5 +1,5 @@
 ﻿using Dalamud.Interface.Utility.Raii;
-using Moonlight.API.Dto.CharaData;
+using MoonLight.API.Dto.CharaData;
 using Moonlight.MoonlightConfiguration.Models;
 using Moonlight.Services.CharaData.Models;
 using System.Text;
