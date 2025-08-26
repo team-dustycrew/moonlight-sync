@@ -31,6 +31,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
     private bool _readFirstPage;
 
     private string _secretKey = string.Empty;
+    private string _mNetKey = string.Empty;
     private string _timeoutLabel = string.Empty;
     private Task? _timeoutTask;
     private string[]? _tosParagraphs;
@@ -275,6 +276,40 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                 }
             }
 
+            var mNetVerifyText = "Enter .mNet API Key";
+            var mNetVerifyButtonText = "Save";
+            var mNetVerifyButtonWidth = _mNetKey.Length != 64 ? 0 : ImGuiHelpers.GetButtonSize(mNetVerifyButtonText).X + ImGui.GetStyle().ItemSpacing.X;
+            var mNetVerifyButtonTextSize = ImGui.CalcTextSize(mNetVerifyText);
+            
+
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextUnformatted(mNetVerifyText);
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(UiSharedService.GetWindowContentRegionWidth() - ImGui.GetWindowContentRegionMin().X - mNetVerifyButtonWidth - mNetVerifyButtonTextSize.X);
+            ImGui.InputText("", ref _mNetKey, 128);
+
+            if (ImGui.Button("Verify"))
+            {
+                _ = Task.Run((Func<Task>)(async () =>
+                {
+                    try
+                    {
+                        var key = await _mnetPairing.PollForKeyAsync(_mnetDeviceCode, _mnetPairingCts.Token).ConfigureAwait(false);
+                        if (!string.IsNullOrEmpty(_mNetKey))
+                        {
+                            await _mnetPairing.SaveKeyAndConfirmAsync(_mNetKey!, _mnetPairingCts.Token).ConfigureAwait(false);
+                            _mnetUserCode = string.Empty;
+                            _mnetVerificationUri = string.Empty;
+                            _mnetDeviceCode = string.Empty;
+                            _ = Task.Run((Func<Task>)(() => _uiShared.ApiController.CreateConnectionsAsync()));
+                        }
+                    }
+                    catch (Exception ex)  
+                    {
+                        _logger.LogWarning(ex, "Failed to verify .mNet Auth Key");
+                    }
+                }));
+            }
 
             int serverIdx = 0;
             var selectedServer = _serverConfigurationManager.GetServerByIndex(serverIdx);
@@ -293,9 +328,10 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                     selectedServer = _serverConfigurationManager.GetServerByIndex(serverIdx);
                     _useLegacyLogin = !selectedServer.UseOAuth2;
 
-                    if (ImGui.Checkbox("Use .mNet Key", ref _useLegacyLogin))
+                    if (ImGui.Checkbox("Use Legacy Login", ref _useLegacyLogin))
                     {
                         _serverConfigurationManager.GetServerByIndex(serverIdx).UseOAuth2 = !_useLegacyLogin;
+                        
                         _serverConfigurationManager.Save();
                     }
                 }

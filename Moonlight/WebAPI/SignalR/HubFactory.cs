@@ -145,8 +145,8 @@ public class HubFactory : MediatorSubscriberBase
             // Add API key header for non-OAuth2 authentication
             if (!_serverConfigurationManager.CurrentServer.UseOAuth2)
             {
-                var apiKey = _serverConfigurationManager.GetSecretKey(out _);
-                if (string.IsNullOrEmpty(apiKey) == false)
+                var apiKey = _serverConfigurationManager.GetMNetKey();
+                if (!string.IsNullOrEmpty(apiKey))
                 {
                     options.Headers.Add("X-MNet-Key", apiKey);
                 }

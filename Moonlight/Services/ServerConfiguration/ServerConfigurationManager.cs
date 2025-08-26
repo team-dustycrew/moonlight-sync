@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.Extensions.Logging;
 using MoonLight.API.Routes;
+using Moonlight.MNet;
 using Moonlight.MoonlightConfiguration;
 using Moonlight.MoonlightConfiguration.Models;
 using Moonlight.Services.Mediator;
@@ -17,6 +18,7 @@ namespace Moonlight.Services.ServerConfiguration;
 public class ServerConfigurationManager
 {
     private readonly ServerConfigService _configService;
+    private readonly MNetConfigService _mNetConfigService;
     private readonly DalamudUtilService _dalamudUtil;
     private readonly MoonlightConfigService _moonlightConfigService;
     private readonly HttpClient _httpClient;
@@ -25,12 +27,13 @@ public class ServerConfigurationManager
     private readonly NotesConfigService _notesConfig;
     private readonly ServerTagConfigService _serverTagConfig;
 
-    public ServerConfigurationManager(ILogger<ServerConfigurationManager> logger, ServerConfigService configService,
+    public ServerConfigurationManager(ILogger<ServerConfigurationManager> logger, ServerConfigService configService, MNetConfigService mNetConfigService,
         ServerTagConfigService serverTagConfig, NotesConfigService notesConfig, DalamudUtilService dalamudUtil,
         MoonlightConfigService moonlightConfigService, HttpClient httpClient, MoonlightMediator moonlightMediator)
     {
         _logger = logger;
         _configService = configService;
+        _mNetConfigService = mNetConfigService;
         _serverTagConfig = serverTagConfig;
         _notesConfig = notesConfig;
         _dalamudUtil = dalamudUtil;
@@ -132,6 +135,16 @@ public class ServerConfigurationManager
         _logger.LogTrace("GetOAuth2 accessed, returning null because no UID found for {chara} on {world} or OAuthToken is not configured.", charaName, worldId);
 
         return null;
+    }
+
+    public string? GetMNetKey()
+    {
+        if (_mNetConfigService.Current.ApiKey.IsNullOrEmpty())
+        {
+            return "";
+        }
+        
+        return _mNetConfigService.Current.ApiKey;
     }
 
     public string? GetSecretKey(out bool hasMulti, int serverIdx = -1)
