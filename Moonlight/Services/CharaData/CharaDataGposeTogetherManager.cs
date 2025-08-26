@@ -110,11 +110,11 @@ public class CharaDataGposeTogetherManager : DisposableMediatorSubscriberBase
         if (playerData == null) return;
         if (!string.Equals(playerData.DataHash.Value, _lastCreatedCharaData?.ApiData.DataHash.Value, StringComparison.Ordinal))
         {
-            List<GamePathEntry> filegamePaths = [.. playerData.FileReplacements[API.Data.Enum.ObjectKind.Player]
+            List<GamePathEntry> filegamePaths = [.. playerData.FileReplacements[MoonLight.API.Data.Enum.ObjectKind.Player]
             .Where(u => string.IsNullOrEmpty(u.FileSwapPath)).SelectMany(u => u.GamePaths, (file, path) => new GamePathEntry(file.Hash, path))];
-            List<GamePathEntry> fileSwapPaths = [.. playerData.FileReplacements[API.Data.Enum.ObjectKind.Player]
+            List<GamePathEntry> fileSwapPaths = [.. playerData.FileReplacements[MoonLight.API.Data.Enum.ObjectKind.Player]
             .Where(u => !string.IsNullOrEmpty(u.FileSwapPath)).SelectMany(u => u.GamePaths, (file, path) => new GamePathEntry(file.FileSwapPath, path))];
-            await _charaDataManager.UploadFiles([.. playerData.FileReplacements[API.Data.Enum.ObjectKind.Player]
+            await _charaDataManager.UploadFiles([.. playerData.FileReplacements[MoonLight.API.Data.Enum.ObjectKind.Player]
             .Where(u => string.IsNullOrEmpty(u.FileSwapPath)).SelectMany(u => u.GamePaths, (file, path) => new GamePathEntry(file.Hash, path))])
                 .ConfigureAwait(false);
 
@@ -122,10 +122,10 @@ public class CharaDataGposeTogetherManager : DisposableMediatorSubscriberBase
             {
                 UpdatedDate = DateTime.UtcNow,
                 ManipulationData = playerData.ManipulationData,
-                CustomizeData = playerData.CustomizePlusData[API.Data.Enum.ObjectKind.Player],
+                CustomizeData = playerData.CustomizePlusData[MoonLight.API.Data.Enum.ObjectKind.Player],
                 FileGamePaths = filegamePaths,
                 FileSwaps = fileSwapPaths,
-                GlamourerData = playerData.GlamourerData[API.Data.Enum.ObjectKind.Player],
+                GlamourerData = playerData.GlamourerData[MoonLight.API.Data.Enum.ObjectKind.Player],
             };
 
             _lastCreatedCharaData = (playerData, charaDataDownloadDto);

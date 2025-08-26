@@ -98,7 +98,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
 
     public SystemInfoDto SystemInfoDto { get; private set; } = new();
 
-    public string UID => _connectionDto?.User.UID ?? string.Empty;
+    public Guid UID => _connectionDto?.User.UID ?? Guid.Empty;
 
     public async Task<bool> CheckClientHealth()
     {

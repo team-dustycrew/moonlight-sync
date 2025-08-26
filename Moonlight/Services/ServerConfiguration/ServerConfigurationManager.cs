@@ -301,7 +301,7 @@ public class ServerConfigurationManager
         _moonlightMediator.Publish(new RefreshUiMessage());
     }
 
-    internal void AddTagForUid(string uid, string tagName)
+    internal void AddTagForUid(Guid uid, string tagName)
     {
         if (CurrentServerTagStorage().UidServerPairedUserTags.TryGetValue(uid, out var tags))
         {
@@ -321,7 +321,7 @@ public class ServerConfigurationManager
         return CurrentServerTagStorage().OpenPairTags.Contains(tag);
     }
 
-    internal bool ContainsTag(string uid, string tag)
+    internal bool ContainsTag(Guid uid, string tag)
     {
         if (CurrentServerTagStorage().UidServerPairedUserTags.TryGetValue(uid, out var tags))
         {
@@ -343,7 +343,7 @@ public class ServerConfigurationManager
         Save();
     }
 
-    internal string? GetNoteForGid(string gID)
+    internal string? GetNoteForGid(Guid gID)
     {
         if (CurrentNotesStorage().GidServerComments.TryGetValue(gID, out var note))
         {
@@ -354,7 +354,7 @@ public class ServerConfigurationManager
         return null;
     }
 
-    internal string? GetNoteForUid(string uid)
+    internal string? GetNoteForUid(Guid uid)
     {
         if (CurrentNotesStorage().UidServerComments.TryGetValue(uid, out var note))
         {
@@ -369,17 +369,17 @@ public class ServerConfigurationManager
         return CurrentServerTagStorage().ServerAvailablePairTags;
     }
 
-    internal Dictionary<string, List<string>> GetUidServerPairedUserTags()
+    internal Dictionary<Guid, List<string>> GetUidServerPairedUserTags()
     {
         return CurrentServerTagStorage().UidServerPairedUserTags;
     }
 
-    internal HashSet<string> GetUidsForTag(string tag)
+    internal HashSet<Guid> GetUidsForTag(string tag)
     {
-        return CurrentServerTagStorage().UidServerPairedUserTags.Where(p => p.Value.Contains(tag, StringComparer.Ordinal)).Select(p => p.Key).ToHashSet(StringComparer.Ordinal);
+        return CurrentServerTagStorage().UidServerPairedUserTags.Where(p => p.Value.Contains(tag, StringComparer.Ordinal)).Select(p => p.Key).ToHashSet();
     }
 
-    internal bool HasTags(string uid)
+    internal bool HasTags(Guid uid)
     {
         if (CurrentServerTagStorage().UidServerPairedUserTags.TryGetValue(uid, out var tags))
         {
@@ -413,7 +413,7 @@ public class ServerConfigurationManager
         _moonlightMediator.Publish(new RefreshUiMessage());
     }
 
-    internal void RemoveTagForUid(string uid, string tagName, bool save = true)
+    internal void RemoveTagForUid(Guid uid, string tagName, bool save = true)
     {
         if (CurrentServerTagStorage().UidServerPairedUserTags.TryGetValue(uid, out var tags))
         {
@@ -443,28 +443,25 @@ public class ServerConfigurationManager
         _notesConfig.Save();
     }
 
-    internal void SetNoteForGid(string gid, string note, bool save = true)
+    internal void SetNoteForGid(Guid gid, string note, bool save = true)
     {
-        if (string.IsNullOrEmpty(gid)) return;
+        if (gid == Guid.Empty) return;
 
         CurrentNotesStorage().GidServerComments[gid] = note;
-        if (save)
-            _notesConfig.Save();
+        if (save) _notesConfig.Save();
     }
 
-    internal void SetNoteForUid(string uid, string note, bool save = true)
+    internal void SetNoteForUid(Guid uid, string note, bool save = true)
     {
-        if (string.IsNullOrEmpty(uid)) return;
+        if (uid == Guid.Empty) return;
 
         CurrentNotesStorage().UidServerComments[uid] = note;
-        if (save)
-            _notesConfig.Save();
+        if (save) _notesConfig.Save();
     }
 
-    internal void AutoPopulateNoteForUid(string uid, string note)
+    internal void AutoPopulateNoteForUid(Guid uid, string note)
     {
-        if (!_moonlightConfigService.Current.AutoPopulateEmptyNotesFromCharaName
-            || GetNoteForUid(uid) != null)
+        if (_moonlightConfigService.Current.AutoPopulateEmptyNotesFromCharaName == false || GetNoteForUid(uid) != null)
             return;
 
         SetNoteForUid(uid, note, save: true);
@@ -512,7 +509,7 @@ public class ServerConfigurationManager
         try
         {
             var baseUri = serverUri.Replace("wss://", "https://").Replace("ws://", "http://");
-            var oauthCheckUri = MoonlightAuth.GetUIDsFullPath(new Uri(baseUri));
+            var oauthCheckUri = MoonLightAuth.GetUIDsFullPath(new Uri(baseUri));
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             var response = await _httpClient.GetAsync(oauthCheckUri).ConfigureAwait(false);
             var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
@@ -530,7 +527,7 @@ public class ServerConfigurationManager
         try
         {
             var baseUri = serverUri.Replace("wss://", "https://").Replace("ws://", "http://");
-            var oauthCheckUri = MoonlightAuth.GetDiscordOAuthEndpointFullPath(new Uri(baseUri));
+            var oauthCheckUri = MoonLightAuth.GetDiscordOAuthEndpointFullPath(new Uri(baseUri));
             var response = await _httpClient.GetFromJsonAsync<Uri?>(oauthCheckUri).ConfigureAwait(false);
             return response;
         }
@@ -553,7 +550,7 @@ public class ServerConfigurationManager
         try
         {
             var baseUri = serverUri.Replace("wss://", "https://").Replace("ws://", "http://");
-            var oauthCheckUri = MoonlightAuth.GetDiscordOAuthTokenFullPath(new Uri(baseUri), sessionId);
+            var oauthCheckUri = MoonLightAuth.GetDiscordOAuthTokenFullPath(new Uri(baseUri), sessionId);
             var response = await _httpClient.GetAsync(oauthCheckUri, linkedCts.Token).ConfigureAwait(false);
             discordToken = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         }

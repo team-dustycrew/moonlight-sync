@@ -25,7 +25,7 @@ internal class JoinSyncshellUI : WindowMediatorSubscriberBase
     private string _syncshellPassword = string.Empty;
 
     public JoinSyncshellUI(ILogger<JoinSyncshellUI> logger, MoonlightMediator mediator,
-        UiSharedService uiSharedService, ApiController apiController, PerformanceCollectorService performanceCollectorService) 
+        UiSharedService uiSharedService, ApiController apiController, PerformanceCollectorService performanceCollectorService)
         : base(logger, mediator, "Join existing Syncshell###MoonlightJoinSyncshell", performanceCollectorService)
     {
         _uiSharedService = uiSharedService;
@@ -78,7 +78,7 @@ internal class JoinSyncshellUI : WindowMediatorSubscriberBase
             {
                 if (_uiSharedService.IconTextButton(Dalamud.Interface.FontAwesomeIcon.Plus, "Join Syncshell"))
                 {
-                    _groupJoinInfo = _apiController.GroupJoin(new GroupPasswordDto(new API.Data.GroupData(_desiredSyncshellToJoin), _syncshellPassword)).Result;
+                    _groupJoinInfo = _apiController.GroupJoin(new GroupPasswordDto(new MoonLight.API.Data.GroupData(Guid.Parse(_desiredSyncshellToJoin)), _syncshellPassword)).Result;
                     _previousPassword = _syncshellPassword;
                     _syncshellPassword = string.Empty;
                 }

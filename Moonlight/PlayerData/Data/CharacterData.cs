@@ -40,7 +40,7 @@ public class CharacterData
         }
     }
 
-    public API.Data.CharacterData ToAPI()
+    public MoonLight.API.Data.CharacterData ToAPI()
     {
         Dictionary<ObjectKind, List<FileReplacementData>> fileReplacements =
             FileReplacements.ToDictionary(k => k.Key, k => k.Value.Where(f => f.HasFileReplacement && !f.IsFileSwap)
@@ -60,7 +60,7 @@ public class CharacterData
             fileReplacements[item.Key].AddRange(fileSwapsToAdd);
         }
 
-        return new API.Data.CharacterData()
+        return new MoonLight.API.Data.CharacterData()
         {
             FileReplacements = fileReplacements,
             GlamourerData = GlamourerString.ToDictionary(d => d.Key, d => d.Value),

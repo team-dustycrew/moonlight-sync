@@ -62,7 +62,7 @@ public class DrawEntityFactory
             allPairs, _tagHandler, _apiController, _selectPairForTagUi, _uiSharedService);
     }
 
-    public DrawUserPair CreateDrawPair(string id, Pair user, List<GroupFullInfoDto> groups, GroupFullInfoDto? currentGroup)
+    public DrawUserPair CreateDrawPair(Guid id, Pair user, List<GroupFullInfoDto> groups, GroupFullInfoDto? currentGroup)
     {
         return new DrawUserPair(id + user.UserData.UID, user, groups, currentGroup, _apiController, _uidDisplayHandler,
             _mediator, _selectTagForPairUi, _serverConfigurationManager, _uiSharedService, _playerPerformanceConfigService,

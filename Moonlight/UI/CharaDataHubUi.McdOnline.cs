@@ -803,7 +803,7 @@ internal sealed partial class CharaDataHubUi
                         static pair => (pair.UserData.UID, pair.UserData.Alias, pair.UserData.AliasOrUID, pair.GetNote()));
                     ImGui.SameLine();
                     using (ImRaii.Disabled(string.IsNullOrEmpty(_specificIndividualAdd)
-                        || updateDto.UserList.Any(f => string.Equals(f.UID, _specificIndividualAdd, StringComparison.Ordinal) || string.Equals(f.Alias, _specificIndividualAdd, StringComparison.Ordinal))))
+                        || updateDto.UserList.Any(f => string.Equals(f.UID.ToString(), _specificIndividualAdd, StringComparison.Ordinal) || string.Equals(f.Alias, _specificIndividualAdd, StringComparison.Ordinal))))
                     {
                         if (_uiSharedService.IconButton(FontAwesomeIcon.Plus))
                         {
@@ -820,10 +820,10 @@ internal sealed partial class CharaDataHubUi
                     {
                         foreach (var user in updateDto.UserList)
                         {
-                            var userString = string.IsNullOrEmpty(user.Alias) ? user.UID : $"{user.Alias} ({user.UID})";
-                            if (ImGui.Selectable(userString, string.Equals(user.UID, _selectedSpecificUserIndividual, StringComparison.Ordinal)))
+                            var userString = string.IsNullOrEmpty(user.Alias) ? user.UID.ToString() : $"{user.Alias} ({user.UID})";
+                            if (ImGui.Selectable(userString, string.Equals(user.UID.ToString(), _selectedSpecificUserIndividual, StringComparison.Ordinal)))
                             {
-                                _selectedSpecificUserIndividual = user.UID;
+                                _selectedSpecificUserIndividual = user.UID.ToString();
                             }
                         }
                     }

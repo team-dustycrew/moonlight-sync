@@ -165,7 +165,7 @@ public class DrawUserPair
         ImGui.TextUnformatted("Individual Pair Functions");
         var entryUID = _pair.UserData.AliasOrUID;
 
-        if (_pair.IndividualPairStatus != API.Data.Enum.IndividualPairStatus.None)
+        if (_pair.IndividualPairStatus != MoonLight.API.Data.Enum.IndividualPairStatus.None)
         {
             if (_uiSharedService.IconTextButton(FontAwesomeIcon.Folder, "Pair Groups", _menuWidth, true))
             {
@@ -203,9 +203,9 @@ public class DrawUserPair
         else if (!_pair.IsOnline)
         {
             using var _ = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-            _uiSharedService.IconText(_pair.IndividualPairStatus == API.Data.Enum.IndividualPairStatus.OneSided
+            _uiSharedService.IconText(_pair.IndividualPairStatus == MoonLight.API.Data.Enum.IndividualPairStatus.OneSided
                 ? FontAwesomeIcon.ArrowsLeftRight
-                : (_pair.IndividualPairStatus == API.Data.Enum.IndividualPairStatus.Bidirectional
+                : (_pair.IndividualPairStatus == MoonLight.API.Data.Enum.IndividualPairStatus.Bidirectional
                     ? FontAwesomeIcon.User : FontAwesomeIcon.Users));
             userPairText = _pair.UserData.AliasOrUID + " is offline";
         }
@@ -221,16 +221,16 @@ public class DrawUserPair
         else
         {
             using var _ = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.HealerGreen);
-            _uiSharedService.IconText(_pair.IndividualPairStatus == API.Data.Enum.IndividualPairStatus.Bidirectional
+            _uiSharedService.IconText(_pair.IndividualPairStatus == MoonLight.API.Data.Enum.IndividualPairStatus.Bidirectional
                 ? FontAwesomeIcon.User : FontAwesomeIcon.Users);
             userPairText = _pair.UserData.AliasOrUID + " is online";
         }
 
-        if (_pair.IndividualPairStatus == API.Data.Enum.IndividualPairStatus.OneSided)
+        if (_pair.IndividualPairStatus == MoonLight.API.Data.Enum.IndividualPairStatus.OneSided)
         {
             userPairText += UiSharedService.TooltipSeparator + "User has not added you back";
         }
-        else if (_pair.IndividualPairStatus == API.Data.Enum.IndividualPairStatus.Bidirectional)
+        else if (_pair.IndividualPairStatus == MoonLight.API.Data.Enum.IndividualPairStatus.Bidirectional)
         {
             userPairText += UiSharedService.TooltipSeparator + "You are directly Paired";
         }
@@ -265,8 +265,7 @@ public class DrawUserPair
         UiSharedService.AttachToolTip(userPairText);
 
         if (_performanceConfigService.Current.ShowPerformanceIndicator
-            && !_performanceConfigService.Current.UIDsToIgnore
-                .Exists(uid => string.Equals(uid, UserPair.User.Alias, StringComparison.Ordinal) || string.Equals(uid, UserPair.User.UID, StringComparison.Ordinal))
+            && _performanceConfigService.Current.UIDsToIgnore.Exists(uid => string.Equals(uid, UserPair.User.Alias, StringComparison.Ordinal) || Equals(uid, UserPair.User.UID)) == false
             && ((_performanceConfigService.Current.VRAMSizeWarningThresholdMiB > 0 && _performanceConfigService.Current.VRAMSizeWarningThresholdMiB * 1024 * 1024 < _pair.LastAppliedApproximateVRAMBytes)
                 || (_performanceConfigService.Current.TrisWarningThresholdThousands > 0 && _performanceConfigService.Current.TrisWarningThresholdThousands * 1000 < _pair.LastAppliedDataTris))
             && (!_pair.UserPair.OwnPermissions.IsSticky()
@@ -471,7 +470,7 @@ public class DrawUserPair
         {
             var icon = FontAwesomeIcon.None;
             var text = string.Empty;
-            if (string.Equals(_currentGroup.OwnerUID, _pair.UserData.UID, StringComparison.Ordinal))
+            if (string.Equals(_currentGroup.OwnerUID, _pair.UserData.UID.ToString(), StringComparison.Ordinal))
             {
                 icon = FontAwesomeIcon.Crown;
                 text = "User is owner of this syncshell";
@@ -530,7 +529,7 @@ public class DrawUserPair
                 ImGui.CloseCurrentPopup();
                 if (!group.GroupPairUserInfos.TryGetValue(_pair.UserData.UID, out var userinfo))
                 {
-                    userinfo = API.Data.Enum.GroupPairUserInfo.IsPinned;
+                    userinfo = MoonLight.API.Data.Enum.GroupPairUserInfo.IsPinned;
                 }
                 else
                 {
@@ -566,7 +565,7 @@ public class DrawUserPair
                 ImGui.CloseCurrentPopup();
                 if (!group.GroupPairUserInfos.TryGetValue(_pair.UserData.UID, out var userinfo))
                 {
-                    userinfo = API.Data.Enum.GroupPairUserInfo.IsModerator;
+                    userinfo = MoonLight.API.Data.Enum.GroupPairUserInfo.IsModerator;
                 }
                 else
                 {

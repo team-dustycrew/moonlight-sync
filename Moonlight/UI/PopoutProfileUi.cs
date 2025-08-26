@@ -129,7 +129,7 @@ public class PopoutProfileUi : WindowMediatorSubscriberBase
                 ImGui.SameLine();
                 ImGui.TextUnformatted($"({_pair.PlayerName})");
             }
-            if (_pair.UserPair.IndividualPairStatus == API.Data.Enum.IndividualPairStatus.Bidirectional)
+            if (_pair.UserPair.IndividualPairStatus == MoonLight.API.Data.Enum.IndividualPairStatus.Bidirectional)
             {
                 ImGui.TextUnformatted("Directly paired");
                 if (_pair.UserPair.OwnPermissions.IsPaused())

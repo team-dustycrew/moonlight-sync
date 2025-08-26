@@ -495,7 +495,7 @@ public class CompactUi : WindowMediatorSubscriberBase
                 .OrderByDescending(u => u.Key.IsOnline)
                 .ThenBy(u =>
                 {
-                    if (string.Equals(u.Key.UserData.UID, group.OwnerUID, StringComparison.Ordinal)) return 0;
+                    if (u.Key.UserData.UID == group.OwnerUID) return 0;
                     if (group.GroupPairUserInfos.TryGetValue(u.Key.UserData.UID, out var info))
                     {
                         if (info.IsModerator()) return 1;

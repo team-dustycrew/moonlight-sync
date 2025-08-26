@@ -1,3 +1,3 @@
 [submodule "MoonLight-API"]
 	path = MoonLight-API
-	url = git@github.com:team-dustycrew/MoonLight-API
+	url = https://github.com/team-dustycrew/MoonLight-API.git

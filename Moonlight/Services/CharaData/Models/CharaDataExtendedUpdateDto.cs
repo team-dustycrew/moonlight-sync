@@ -195,7 +195,16 @@ public sealed record CharaDataExtendedUpdateDto : CharaDataUpdateDto
 
     public void AddUserToList(string user)
     {
-        _userList.Add(new(user, null));
+        // Accept either GUID or vanity string. If it's a GUID string, parse it
+        if (Guid.TryParse(user, out var guid))
+        {
+            _userList.Add(new(guid, null));
+        }
+        else
+        {
+            // Keep vanity identifier as alias, GUID unknown; server will validate
+            _userList.Add(new(Guid.Empty, user));
+        }
         UpdateAllowedUsers();
     }
 
@@ -208,8 +217,8 @@ public sealed record CharaDataExtendedUpdateDto : CharaDataUpdateDto
     private void UpdateAllowedUsers()
     {
         AllowedUsers = [.. _userList.Select(u => u.UID)];
-        if (!AllowedUsers.Except(_charaDataFullDto.AllowedUsers.Select(u => u.UID), StringComparer.Ordinal).Any()
-            && !_charaDataFullDto.AllowedUsers.Select(u => u.UID).Except(AllowedUsers, StringComparer.Ordinal).Any())
+        if (!AllowedUsers.Except(_charaDataFullDto.AllowedUsers.Select(u => u.UID)).Any()
+            && !_charaDataFullDto.AllowedUsers.Select(u => u.UID).Except(AllowedUsers).Any())
         {
             AllowedUsers = null;
         }
@@ -218,8 +227,8 @@ public sealed record CharaDataExtendedUpdateDto : CharaDataUpdateDto
     private void UpdateAllowedGroups()
     {
         AllowedGroups = [.. _groupList.Select(u => u.GID)];
-        if (!AllowedGroups.Except(_charaDataFullDto.AllowedGroups.Select(u => u.GID), StringComparer.Ordinal).Any()
-            && !_charaDataFullDto.AllowedGroups.Select(u => u.GID).Except(AllowedGroups, StringComparer.Ordinal).Any())
+        if (!AllowedGroups.Except(_charaDataFullDto.AllowedGroups.Select(u => u.GID)).Any()
+            && !_charaDataFullDto.AllowedGroups.Select(u => u.GID).Except(AllowedGroups).Any())
         {
             AllowedGroups = null;
         }
@@ -227,7 +236,14 @@ public sealed record CharaDataExtendedUpdateDto : CharaDataUpdateDto
 
     public void RemoveUserFromList(string user)
     {
-        _userList.RemoveAll(u => string.Equals(u.UID, user, StringComparison.Ordinal));
+        if (Guid.TryParse(user, out var guid))
+        {
+            _userList.RemoveAll(u => u.UID == guid);
+        }
+        else
+        {
+            _userList.RemoveAll(u => string.Equals(u.Alias, user, StringComparison.Ordinal));
+        }
         UpdateAllowedUsers();
     }
 

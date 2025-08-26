@@ -57,7 +57,7 @@ public sealed class PairManager : DisposableMediatorSubscriberBase
     public void AddGroupPair(GroupPairFullInfoDto dto)
     {
         if (!_allClientPairs.ContainsKey(dto.User))
-            _allClientPairs[dto.User] = _pairFactory.Create(new UserFullPairDto(dto.User, API.Data.Enum.IndividualPairStatus.None,
+            _allClientPairs[dto.User] = _pairFactory.Create(new UserFullPairDto(dto.User, MoonLight.API.Data.Enum.IndividualPairStatus.None,
                 [dto.Group.GID], dto.SelfToOtherPermissions, dto.OtherToSelfPermissions));
         else _allClientPairs[dto.User].UserPair.Groups.Add(dto.GID);
         RecreateLazy();
@@ -212,7 +212,7 @@ public sealed class PairManager : DisposableMediatorSubscriberBase
     {
         if (_allClientPairs.TryGetValue(dto.User, out var pair))
         {
-            pair.UserPair.IndividualPairStatus = API.Data.Enum.IndividualPairStatus.None;
+            pair.UserPair.IndividualPairStatus = MoonLight.API.Data.Enum.IndividualPairStatus.None;
 
             if (!pair.HasAnyConnection())
             {
@@ -349,7 +349,7 @@ public sealed class PairManager : DisposableMediatorSubscriberBase
     }
 
     private Lazy<List<Pair>> DirectPairsLazy() => new(() => _allClientPairs.Select(k => k.Value)
-        .Where(k => k.IndividualPairStatus != API.Data.Enum.IndividualPairStatus.None).ToList());
+        .Where(k => k.IndividualPairStatus != MoonLight.API.Data.Enum.IndividualPairStatus.None).ToList());
 
     private void DisposePairs()
     {

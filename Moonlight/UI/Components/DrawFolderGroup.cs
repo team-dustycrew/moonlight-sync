@@ -34,7 +34,7 @@ public class DrawFolderGroup : DrawFolderBase
     protected override bool RenderIfEmpty => true;
     protected override bool RenderMenu => true;
     private bool IsModerator => IsOwner || _groupFullInfoDto.GroupUserInfo.IsModerator();
-    private bool IsOwner => string.Equals(_groupFullInfoDto.OwnerUID, _apiController.UID, StringComparison.Ordinal);
+    private bool IsOwner => string.Equals(_groupFullInfoDto.OwnerUID, _apiController.UID.ToString(), StringComparison.Ordinal);
     private bool IsPinned => _groupFullInfoDto.GroupUserInfo.IsPinned();
 
     protected override float DrawIcon()
@@ -104,7 +104,7 @@ public class DrawFolderGroup : DrawFolderBase
             _ = _apiController.GroupLeave(_groupFullInfoDto);
             ImGui.CloseCurrentPopup();
         }
-        UiSharedService.AttachToolTip("Hold CTRL and click to leave this Syncshell" + (!string.Equals(_groupFullInfoDto.OwnerUID, _apiController.UID, StringComparison.Ordinal)
+        UiSharedService.AttachToolTip("Hold CTRL and click to leave this Syncshell" + (!string.Equals(_groupFullInfoDto.OwnerUID, _apiController.UID.ToString(), StringComparison.Ordinal)
             ? string.Empty : Environment.NewLine + "WARNING: This action is irreversible" + Environment.NewLine + "Leaving an owned Syncshell will transfer the ownership to a random person in the Syncshell."));
 
         ImGui.Separator();

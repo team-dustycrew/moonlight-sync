@@ -569,7 +569,7 @@ internal sealed partial class CharaDataHubUi : WindowMediatorSubscriberBase
                             uidText = uid;
                         }
 
-                        var note = _serverConfigurationManager.GetNoteForUid(uid);
+                        var note = Guid.TryParse(uid, out var parsed) ? _serverConfigurationManager.GetNoteForUid(parsed) : null;
                         if (note != null)
                         {
                             uidText = $"{note} ({uidText})";

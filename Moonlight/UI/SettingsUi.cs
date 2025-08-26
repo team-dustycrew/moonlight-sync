@@ -1877,7 +1877,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
         }
 
         var baseUri = serverStorage.ServerUri.Replace("wss://", "https://").Replace("ws://", "http://");
-        var oauthCheckUri = MoonlightAuth.GetUIDsBasedOnSecretKeyFullPath(new Uri(baseUri));
+        var oauthCheckUri = MoonLightAuth.GetUIDsBasedOnSecretKeyFullPath(new Uri(baseUri));
         var requestContent = JsonContent.Create(secretKeyMapping.Select(k => k.Key).ToList());
         HttpRequestMessage requestMessage = new(HttpMethod.Post, oauthCheckUri);
         requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", serverStorage.OAuthToken);

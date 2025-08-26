@@ -67,7 +67,7 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
 
                 if (!_serverManager.CurrentServer.UseOAuth2)
                 {
-                    tokenUri = MoonlightAuth.AuthFullPath(new Uri(_serverManager.CurrentApiUrl
+                    tokenUri = MoonLightAuth.AuthFullPath(new Uri(_serverManager.CurrentApiUrl
                         .Replace("wss://", "https://", StringComparison.OrdinalIgnoreCase)
                         .Replace("ws://", "http://", StringComparison.OrdinalIgnoreCase)));
                     // Prefer global mNet key when present
@@ -84,7 +84,7 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
                 }
                 else
                 {
-                    tokenUri = MoonlightAuth.AuthWithOauthFullPath(new Uri(_serverManager.CurrentApiUrl
+                    tokenUri = MoonLightAuth.AuthWithOauthFullPath(new Uri(_serverManager.CurrentApiUrl
                         .Replace("wss://", "https://", StringComparison.OrdinalIgnoreCase)
                         .Replace("ws://", "http://", StringComparison.OrdinalIgnoreCase)));
                     HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, tokenUri.ToString());
@@ -101,7 +101,7 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
             {
                 _logger.LogDebug("GetNewToken: Renewal");
 
-                tokenUri = MoonlightAuth.RenewTokenFullPath(new Uri(_serverManager.CurrentApiUrl
+                tokenUri = MoonLightAuth.RenewTokenFullPath(new Uri(_serverManager.CurrentApiUrl
                     .Replace("wss://", "https://", StringComparison.OrdinalIgnoreCase)
                     .Replace("ws://", "http://", StringComparison.OrdinalIgnoreCase)));
                 HttpRequestMessage request = new(HttpMethod.Get, tokenUri.ToString());
@@ -262,7 +262,7 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
                 return false;
         }
 
-        var tokenUri = MoonlightAuth.RenewOAuthTokenFullPath(new Uri(currentServer.ServerUri
+        var tokenUri = MoonLightAuth.RenewOAuthTokenFullPath(new Uri(currentServer.ServerUri
             .Replace("wss://", "https://", StringComparison.OrdinalIgnoreCase)
             .Replace("ws://", "http://", StringComparison.OrdinalIgnoreCase)));
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, tokenUri.ToString());

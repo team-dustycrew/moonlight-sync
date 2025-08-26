@@ -58,12 +58,12 @@ internal class EventViewerUI : WindowMediatorSubscriberBase
                 (string.IsNullOrEmpty(_filterFreeText)
                 || (f.EventSource.Contains(_filterFreeText, StringComparison.OrdinalIgnoreCase)
                     || f.Character.Contains(_filterFreeText, StringComparison.OrdinalIgnoreCase)
-                    || f.UID.Contains(_filterFreeText, StringComparison.OrdinalIgnoreCase)
+                    || (f.UID?.Contains(_filterFreeText, StringComparison.OrdinalIgnoreCase) ?? false)
                     || f.Message.Contains(_filterFreeText, StringComparison.OrdinalIgnoreCase)
                 ))
                 &&
                 (string.IsNullOrEmpty(_filterUid)
-                    || (f.UID.Contains(_filterUid, StringComparison.OrdinalIgnoreCase))
+                    || ((f.UID?.Contains(_filterUid, StringComparison.OrdinalIgnoreCase) ?? false))
                 )
                 &&
                 (string.IsNullOrEmpty(_filterSource)

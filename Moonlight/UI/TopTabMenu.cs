@@ -447,7 +447,7 @@ public class TopTabMenu
                         perm.SetDisableAnimations(g.GroupPermissions.IsPreferDisableAnimations());
                         perm.SetDisableVFX(g.GroupPermissions.IsPreferDisableVFX());
                         return perm;
-                    }, StringComparer.Ordinal);
+                    });
 
                 _ = _apiController.SetBulkPermissions(new(new(StringComparer.Ordinal), bulkSyncshells)).ConfigureAwait(false);
             }
@@ -465,7 +465,7 @@ public class TopTabMenu
         var buttonX = (availableWidth - (spacingX)) / 2f;
 
         using (ImRaii.Disabled(_pairManager.GroupPairs.Select(k => k.Key).Distinct()
-            .Count(g => string.Equals(g.OwnerUID, _apiController.UID, StringComparison.Ordinal)) >= _apiController.ServerInfo.MaxGroupsCreatedByUser))
+            .Count(g => string.Equals(g.OwnerUID, _apiController.UID.ToString(), StringComparison.Ordinal)) >= _apiController.ServerInfo.MaxGroupsCreatedByUser))
         {
             if (_uiSharedService.IconTextButton(FontAwesomeIcon.Plus, "Create new Syncshell", buttonX))
             {
@@ -531,7 +531,7 @@ public class TopTabMenu
                     .ToDictionary(g => g.UserPair.User.UID, g =>
                     {
                         return actEnable(g.UserPair.OwnPermissions);
-                    }, StringComparer.Ordinal);
+                    });
 
                 _ = _apiController.SetBulkPermissions(new(bulkIndividualPairs, new(StringComparer.Ordinal))).ConfigureAwait(false);
                 ImGui.CloseCurrentPopup();
@@ -545,7 +545,7 @@ public class TopTabMenu
                     .ToDictionary(g => g.UserPair.User.UID, g =>
                     {
                         return actDisable(g.UserPair.OwnPermissions);
-                    }, StringComparer.Ordinal);
+                    });
 
                 _ = _apiController.SetBulkPermissions(new(bulkIndividualPairs, new(StringComparer.Ordinal))).ConfigureAwait(false);
                 ImGui.CloseCurrentPopup();
@@ -569,7 +569,7 @@ public class TopTabMenu
                     .ToDictionary(g => g.Group.GID, g =>
                     {
                         return actEnable(g.GroupUserPermissions);
-                    }, StringComparer.Ordinal);
+                    });
 
                 _ = _apiController.SetBulkPermissions(new(new(StringComparer.Ordinal), bulkSyncshells)).ConfigureAwait(false);
                 ImGui.CloseCurrentPopup();
