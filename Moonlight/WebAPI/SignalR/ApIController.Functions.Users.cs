@@ -91,10 +91,10 @@ public partial class ApiController
 
     public async Task UserSetPairPermissions(UserPermissionsDto userPermissions)
     {
-        await SetBulkPermissions(new(new(StringComparer.Ordinal)
+        await SetBulkPermissions(new(new()
         {
                 { userPermissions.User.UID, userPermissions.Permissions }
-            }, new(StringComparer.Ordinal))).ConfigureAwait(false);
+            }, new())).ConfigureAwait(false);
     }
 
     public async Task UserSetProfile(UserProfileDto userDescription)

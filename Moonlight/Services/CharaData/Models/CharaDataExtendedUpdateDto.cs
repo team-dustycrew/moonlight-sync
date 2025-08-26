@@ -210,7 +210,7 @@ public sealed record CharaDataExtendedUpdateDto : CharaDataUpdateDto
 
     public void AddGroupToList(string group)
     {
-        _groupList.Add(new(group, null));
+        _groupList.Add(new(new Guid(group), null));
         UpdateAllowedGroups();
     }
 
@@ -249,7 +249,7 @@ public sealed record CharaDataExtendedUpdateDto : CharaDataUpdateDto
 
     public void RemoveGroupFromList(string group)
     {
-        _groupList.RemoveAll(u => string.Equals(u.GID, group, StringComparison.Ordinal));
+        _groupList.RemoveAll(u => string.Equals(u.GID.ToString(), group, StringComparison.Ordinal));
         UpdateAllowedGroups();
     }
 

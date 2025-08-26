@@ -148,7 +148,7 @@ internal sealed partial class CharaDataHubUi
 			foreach (var favorite in _configService.Current.FavoriteCodes)
 			{
 				var uid = favorite.Key.Split(":")[0];
-				var note = _serverConfigurationManager.GetNoteForUid(uid) ?? string.Empty;
+				var note = _serverConfigurationManager.GetNoteForUid(new Guid(uid)) ?? string.Empty;
 				bool hasMetaInfo = _charaDataManager.TryGetMetaInfo(favorite.Key, out var metaInfo);
 				bool addFavorite =
 					(string.IsNullOrEmpty(_filterCodeNote)

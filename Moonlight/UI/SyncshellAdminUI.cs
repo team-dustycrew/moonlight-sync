@@ -40,7 +40,7 @@ public class SyncshellAdminUI : WindowMediatorSubscriberBase
         _apiController = apiController;
         _uiSharedService = uiSharedService;
         _pairManager = pairManager;
-        _isOwner = string.Equals(GroupFullInfo.OwnerUID, _apiController.UID.ToString(), StringComparison.Ordinal);
+        _isOwner = string.Equals(GroupFullInfo.OwnerUID.ToString(), _apiController.UID.ToString(), StringComparison.Ordinal);
         _isModerator = GroupFullInfo.GroupUserInfo.IsModerator();
         _newPassword = string.Empty;
         _multiInvites = 30;
@@ -338,21 +338,21 @@ public class SyncshellAdminUI : WindowMediatorSubscriberBase
                         foreach (var bannedUser in _bannedUsers.ToList())
                         {
                             ImGui.TableNextColumn();
-                            ImGui.TextUnformatted(bannedUser.UID);
+                            ImGui.TextUnformatted(bannedUser.UID.ToString());
                             ImGui.TableNextColumn();
                             ImGui.TextUnformatted(bannedUser.UserAlias ?? string.Empty);
                             ImGui.TableNextColumn();
-                            ImGui.TextUnformatted(bannedUser.BannedBy);
+                            ImGui.TextUnformatted(bannedUser.BannedBy.ToString());
                             ImGui.TableNextColumn();
                             ImGui.TextUnformatted(bannedUser.BannedOn.ToLocalTime().ToString(CultureInfo.CurrentCulture));
                             ImGui.TableNextColumn();
                             UiSharedService.TextWrapped(bannedUser.Reason);
                             ImGui.TableNextColumn();
-                            using var _ = ImRaii.PushId(bannedUser.UID);
+                            using var _ = ImRaii.PushId(bannedUser.UID.ToString());
                             if (_uiSharedService.IconTextButton(FontAwesomeIcon.Check, "Unban"))
                             {
                                 _apiController.GroupUnbanUser(bannedUser);
-                                _bannedUsers.RemoveAll(b => string.Equals(b.UID, bannedUser.UID, StringComparison.Ordinal));
+                                _bannedUsers.RemoveAll(b => string.Equals(b.UID.ToString(), bannedUser.UID.ToString(), StringComparison.Ordinal));
                             }
                         }
 

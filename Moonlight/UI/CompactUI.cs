@@ -409,14 +409,14 @@ public class CompactUi : WindowMediatorSubscriberBase
             }
             UiSharedService.AttachToolTip("Click to copy");
 
-            if (!string.Equals(_apiController.DisplayName, _apiController.UID, StringComparison.Ordinal))
+            if (!string.Equals(_apiController.DisplayName, _apiController.UID.ToString(), StringComparison.Ordinal))
             {
-                var origTextSize = ImGui.CalcTextSize(_apiController.UID);
+                var origTextSize = ImGui.CalcTextSize(_apiController.UID.ToString());
                 ImGui.SetCursorPosX((ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X) / 2 - (origTextSize.X / 2));
-                ImGui.TextColored(GetUidColor(), _apiController.UID);
+                ImGui.TextColored(GetUidColor(), _apiController.UID.ToString());
                 if (ImGui.IsItemClicked())
                 {
-                    ImGui.SetClipboardText(_apiController.UID);
+                    ImGui.SetClipboardText(_apiController.UID.ToString());
                 }
                 UiSharedService.AttachToolTip("Click to copy");
             }
@@ -461,11 +461,11 @@ public class CompactUi : WindowMediatorSubscriberBase
             => u.Key.IsVisible
                 && (_configService.Current.ShowSyncshellUsersInVisible || !(!_configService.Current.ShowSyncshellUsersInVisible && !u.Key.IsDirectlyPaired));
         bool FilterTagusers(KeyValuePair<Pair, List<GroupFullInfoDto>> u, string tag)
-            => u.Key.IsDirectlyPaired && !u.Key.IsOneSidedPair && _tagHandler.HasTag(u.Key.UserData.UID, tag);
+            => u.Key.IsDirectlyPaired && !u.Key.IsOneSidedPair && _tagHandler.HasTag(u.Key.UserData.UID.ToString(), tag);
         bool FilterGroupUsers(KeyValuePair<Pair, List<GroupFullInfoDto>> u, GroupFullInfoDto group)
-            => u.Value.Exists(g => string.Equals(g.GID, group.GID, StringComparison.Ordinal));
+            => u.Value.Exists(g => string.Equals(g.GID.ToString(), group.GID.ToString(), StringComparison.Ordinal));
         bool FilterNotTaggedUsers(KeyValuePair<Pair, List<GroupFullInfoDto>> u)
-            => u.Key.IsDirectlyPaired && !u.Key.IsOneSidedPair && !_tagHandler.HasAnyTag(u.Key.UserData.UID);
+            => u.Key.IsDirectlyPaired && !u.Key.IsOneSidedPair && !_tagHandler.HasAnyTag(u.Key.UserData.UID.ToString());
         bool FilterOfflineUsers(KeyValuePair<Pair, List<GroupFullInfoDto>> u)
             => ((u.Key.IsDirectlyPaired && _configService.Current.ShowSyncshellOfflineUsersSeparately)
                 || !_configService.Current.ShowSyncshellOfflineUsersSeparately)

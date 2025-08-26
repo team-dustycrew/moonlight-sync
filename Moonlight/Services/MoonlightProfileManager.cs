@@ -55,13 +55,14 @@ public class MoonlightProfileManager : MediatorSubscriberBase
     {
         try
         {
+            
             _moonlightProfiles[data] = _loadingProfileData;
-            var profile = await _apiController.UserGetProfile(new API.Dto.User.UserDto(data)).ConfigureAwait(false);
+            var profile = await _apiController.UserGetProfile(new MoonLight.API.Dto.User.UserDto(data)).ConfigureAwait(false);
             MoonlightProfileData profileData = new(profile.Disabled, profile.IsNSFW ?? false,
                 string.IsNullOrEmpty(profile.ProfilePictureBase64) ? _moonlightLogo : profile.ProfilePictureBase64,
-                !string.IsNullOrEmpty(data.Alias) && !string.Equals(data.Alias, data.UID, StringComparison.Ordinal) ? _moonlightSupporter : string.Empty,
+                !string.IsNullOrEmpty(data.Alias) && !string.Equals(data.Alias, data.UID.ToString(), StringComparison.Ordinal) ? _moonlightSupporter : string.Empty,
                 string.IsNullOrEmpty(profile.Description) ? _noDescription : profile.Description);
-            if (profileData.IsNSFW && !_moonlightConfigService.Current.ProfilesAllowNsfw && !string.Equals(_apiController.UID, data.UID, StringComparison.Ordinal))
+            if (profileData.IsNSFW && !_moonlightConfigService.Current.ProfilesAllowNsfw && !string.Equals(_apiController.UID.ToString(), data.UID.ToString(), StringComparison.Ordinal))
             {
                 _moonlightProfiles[data] = _nsfwProfileData;
             }

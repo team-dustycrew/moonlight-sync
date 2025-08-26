@@ -172,7 +172,7 @@ public class DrawFolderTag : DrawFolderBase
             var perm = g.UserPair.OwnPermissions;
             perm.SetPaused(paused: true);
             return perm;
-        }, StringComparer.Ordinal), new(StringComparer.Ordinal)))
+        }), new()))
             .ConfigureAwait(false);
     }
 
@@ -184,7 +184,7 @@ public class DrawFolderTag : DrawFolderBase
                 var perm = g.UserPair.OwnPermissions;
                 perm.SetPaused(paused: false);
                 return perm;
-            }, StringComparer.Ordinal), new(StringComparer.Ordinal)))
+            }), new()))
             .ConfigureAwait(false);
     }
 }

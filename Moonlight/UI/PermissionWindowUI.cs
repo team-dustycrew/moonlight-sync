@@ -136,11 +136,11 @@ public class PermissionWindowUI : WindowMediatorSubscriberBase
             if (_uiSharedService.IconTextButton(Dalamud.Interface.FontAwesomeIcon.Save, "Save"))
             {
                 _ = _apiController.SetBulkPermissions(new(
-                    new(StringComparer.Ordinal)
+                    new()
                     {
                         { Pair.UserData.UID, _ownPermissions }
                     },
-                    new(StringComparer.Ordinal)
+                    new()
                 ));
             }
         UiSharedService.AttachToolTip("Save and apply all changes");
@@ -168,11 +168,11 @@ public class PermissionWindowUI : WindowMediatorSubscriberBase
             _ownPermissions.SetDisableSounds(Pair.IsDirectlyPaired ? defaultPermissions.DisableIndividualSounds : defaultPermissions.DisableGroupSounds);
             _ownPermissions.SetDisableAnimations(Pair.IsDirectlyPaired ? defaultPermissions.DisableIndividualAnimations : defaultPermissions.DisableGroupAnimations);
             _ = _apiController.SetBulkPermissions(new(
-                new(StringComparer.Ordinal)
+                new()
                 {
                     { Pair.UserData.UID, _ownPermissions }
                 },
-                new(StringComparer.Ordinal)
+                new()
             ));
         }
         UiSharedService.AttachToolTip("This will set all permissions to your defined default permissions in the Moonlight Settings");

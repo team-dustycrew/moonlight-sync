@@ -148,8 +148,8 @@ public class PopoutProfileUi : WindowMediatorSubscriberBase
                 ImGui.TextUnformatted("Paired through Syncshells:");
                 foreach (var group in _pair.UserPair.Groups)
                 {
-                    var groupNote = _serverManager.GetNoteForGid(group);
-                    var groupName = _pairManager.GroupPairs.First(f => string.Equals(f.Key.GID, group, StringComparison.Ordinal)).Key.GroupAliasOrGID;
+                    var groupNote = _serverManager.GetNoteForGid(new Guid(group));
+                    var groupName = _pairManager.GroupPairs.First(f => string.Equals(f.Key.GID.ToString(), group, StringComparison.Ordinal)).Key.GroupAliasOrGID;
                     var groupString = string.IsNullOrEmpty(groupNote) ? groupName : $"{groupNote} ({groupName})";
                     ImGui.TextUnformatted("- " + groupString);
                 }

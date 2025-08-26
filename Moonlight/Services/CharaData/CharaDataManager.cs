@@ -423,7 +423,7 @@ public sealed partial class CharaDataManager : DisposableMediatorSubscriberBase
         var result = await GetSharedWithYouTask.ConfigureAwait(false);
         foreach (var grouping in result.GroupBy(r => r.Uploader))
         {
-            var pair = _pairManager.GetPairByUID(grouping.Key.UID);
+            var pair = _pairManager.GetPairByUID(grouping.Key.UID.ToString());
             if (pair?.IsPaused ?? false) continue;
             List<CharaDataMetaInfoExtendedDto> newList = new();
             foreach (var item in grouping)
@@ -488,7 +488,7 @@ public sealed partial class CharaDataManager : DisposableMediatorSubscriberBase
 
                 DataApplicationProgress = "Applying MCDF data";
 
-                var extended = await CharaDataMetaInfoExtendedDto.Create(new(charaFile.FilePath, new UserData(string.Empty)), _dalamudUtilService)
+                var extended = await CharaDataMetaInfoExtendedDto.Create(new(charaFile.FilePath, new UserData(Guid.Empty)), _dalamudUtilService)
                     .ConfigureAwait(false);
                 await ApplyDataAsync(applicationId, tempHandler, isSelf, autoRevert: false, extended,
                     extractedFiles, charaFile.CharaFileData.ManipulationData, charaFile.CharaFileData.GlamourerData,
@@ -834,7 +834,7 @@ public sealed partial class CharaDataManager : DisposableMediatorSubscriberBase
             Logger.LogTrace("[{appId}] Applying data in Penumbra", applicationId);
 
             DataApplicationProgress = "Applying Penumbra information";
-            penumbraCollection = await _ipcManager.Penumbra.CreateTemporaryCollectionAsync(Logger, metaInfo.Uploader.UID + metaInfo.Id).ConfigureAwait(false);
+            penumbraCollection = await _ipcManager.Penumbra.CreateTemporaryCollectionAsync(Logger, new Guid(metaInfo.Uploader.UID + metaInfo.Id)).ConfigureAwait(false);
             var idx = await _dalamudUtilService.RunOnFrameworkThread(() => tempHandler.GetGameObject()?.ObjectIndex).ConfigureAwait(false) ?? 0;
             await _ipcManager.Penumbra.AssignTemporaryCollectionAsync(Logger, penumbraCollection, idx).ConfigureAwait(false);
             await _ipcManager.Penumbra.SetTemporaryModsAsync(Logger, applicationId, penumbraCollection, modPaths).ConfigureAwait(false);

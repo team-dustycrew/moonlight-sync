@@ -601,7 +601,7 @@ public class CharaDataGposeTogetherManager : DisposableMediatorSubscriberBase
 
     private void OnReceiveCharaData(CharaDataDownloadDto charaDataDownloadDto)
     {
-        if (!_usersInLobby.TryGetValue(charaDataDownloadDto.Uploader.UID, out var lobbyData))
+        if (!_usersInLobby.TryGetValue(charaDataDownloadDto.Uploader.UID.ToString(), out var lobbyData))
         {
             return;
         }
@@ -660,7 +660,7 @@ public class CharaDataGposeTogetherManager : DisposableMediatorSubscriberBase
 
     private void OnReceivePoseData(UserData userData, PoseData poseData)
     {
-        if (!_usersInLobby.TryGetValue(userData.UID, out var lobbyData))
+        if (!_usersInLobby.TryGetValue(userData.UID.ToString(), out var lobbyData))
         {
             return;
         }
@@ -673,21 +673,21 @@ public class CharaDataGposeTogetherManager : DisposableMediatorSubscriberBase
 
     private void OnReceiveWorldData(UserData userData, WorldData worldData)
     {
-        _usersInLobby[userData.UID].WorldData = worldData;
-        _ = _usersInLobby[userData.UID].SetWorldDataDescriptor(_dalamudUtil);
+        _usersInLobby[userData.UID.ToString()].WorldData = worldData;
+        _ = _usersInLobby[userData.UID.ToString()].SetWorldDataDescriptor(_dalamudUtil);
     }
 
     private void OnUserJoinLobby(UserData userData)
     {
-        if (_usersInLobby.ContainsKey(userData.UID))
+        if (_usersInLobby.ContainsKey(userData.UID.ToString()))
             OnUserLeaveLobby(userData);
-        _usersInLobby[userData.UID] = new(userData);
+        _usersInLobby[userData.UID.ToString()] = new(userData);
         _ = PushCharacterDownloadDto();
     }
 
     private void OnUserLeaveLobby(UserData msg)
     {
-        _usersInLobby.Remove(msg.UID, out var existingData);
+        _usersInLobby.Remove(msg.UID.ToString(), out var existingData);
         if (existingData != default)
         {
             _ = _dalamudUtil.RunOnFrameworkThread(() => _vfxSpawnManager.DespawnObject(existingData.SpawnedVfxId));

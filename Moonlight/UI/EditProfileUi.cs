@@ -51,7 +51,7 @@ public class EditProfileUi : WindowMediatorSubscriberBase
         Mediator.Subscribe<DisconnectedMessage>(this, (_) => IsOpen = false);
         Mediator.Subscribe<ClearProfileDataMessage>(this, (msg) =>
         {
-            if (msg.UserData == null || string.Equals(msg.UserData.UID, _apiController.UID, StringComparison.Ordinal))
+            if (msg.UserData == null || string.Equals(msg.UserData.UID.ToString(), _apiController.UID.ToString(), StringComparison.Ordinal))
             {
                 _pfpTextureWrap?.Dispose();
                 _pfpTextureWrap = null;

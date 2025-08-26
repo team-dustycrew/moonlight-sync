@@ -21,8 +21,8 @@ public partial class ApiController
     public async Task GroupChangeIndividualPermissionState(GroupPairUserPermissionDto dto)
     {
         CheckConnection();
-        await SetBulkPermissions(new(new(StringComparer.Ordinal),
-            new(StringComparer.Ordinal) {
+        await SetBulkPermissions(new(new(),
+            new() {
                 { dto.Group.GID, dto.GroupPairPermissions }
             })).ConfigureAwait(false);
     }

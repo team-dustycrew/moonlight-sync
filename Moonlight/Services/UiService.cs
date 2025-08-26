@@ -57,7 +57,7 @@ public sealed class UiService : DisposableMediatorSubscriberBase
         Mediator.Subscribe<OpenSyncshellAdminPanel>(this, (msg) =>
         {
             if (!_createdWindows.Exists(p => p is SyncshellAdminUI ui
-                && string.Equals(ui.GroupFullInfo.GID, msg.GroupInfo.GID, StringComparison.Ordinal)))
+                && string.Equals(ui.GroupFullInfo.GID.ToString(), msg.GroupInfo.GID.ToString(), StringComparison.Ordinal)))
             {
                 var window = _uiFactory.CreateSyncshellAdminUi(msg.GroupInfo);
                 _createdWindows.Add(window);

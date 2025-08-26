@@ -415,8 +415,8 @@ public partial class UiSharedService : DisposableMediatorSubscriberBase
                 var splittedEntry = note.Split(":", 2, StringSplitOptions.RemoveEmptyEntries);
                 var uid = splittedEntry[0];
                 var comment = splittedEntry[1].Trim('"');
-                if (_serverConfigurationManager.GetNoteForUid(uid) != null && !overwrite) continue;
-                _serverConfigurationManager.SetNoteForUid(uid, comment);
+                if (_serverConfigurationManager.GetNoteForUid(new Guid(uid)) != null && !overwrite) continue;
+                _serverConfigurationManager.SetNoteForUid(new Guid(uid), comment);
             }
             catch
             {

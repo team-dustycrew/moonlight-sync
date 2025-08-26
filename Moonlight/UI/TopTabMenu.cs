@@ -183,12 +183,12 @@ public class TopTabMenu
         ImGui.SetNextItemWidth(availableXWidth - buttonSize - spacingX);
         ImGui.InputTextWithHint("##otheruid", "Other players UID/Alias", ref _pairToAdd, 20);
         ImGui.SameLine();
-        var alreadyExisting = _pairManager.DirectPairs.Exists(p => string.Equals(p.UserData.UID, _pairToAdd, StringComparison.Ordinal) || string.Equals(p.UserData.Alias, _pairToAdd, StringComparison.Ordinal));
+        var alreadyExisting = _pairManager.DirectPairs.Exists(p => string.Equals(p.UserData.UID.ToString(), _pairToAdd, StringComparison.Ordinal) || string.Equals(p.UserData.Alias, _pairToAdd, StringComparison.Ordinal));
         using (ImRaii.Disabled(alreadyExisting || string.IsNullOrEmpty(_pairToAdd)))
         {
             if (_uiSharedService.IconTextButton(FontAwesomeIcon.UserPlus, "Add"))
             {
-                _ = _apiController.UserAddPair(new(new(_pairToAdd)));
+                _ = _apiController.UserAddPair(new(new(new Guid(_pairToAdd))));
                 _pairToAdd = string.Empty;
             }
         }
@@ -449,7 +449,7 @@ public class TopTabMenu
                         return perm;
                     });
 
-                _ = _apiController.SetBulkPermissions(new(new(StringComparer.Ordinal), bulkSyncshells)).ConfigureAwait(false);
+                _ = _apiController.SetBulkPermissions(new(new(), bulkSyncshells)).ConfigureAwait(false);
             }
         }
         UiSharedService.AttachToolTip("Globally align syncshell permissions to suggested syncshell permissions." + UiSharedService.TooltipSeparator
@@ -465,7 +465,7 @@ public class TopTabMenu
         var buttonX = (availableWidth - (spacingX)) / 2f;
 
         using (ImRaii.Disabled(_pairManager.GroupPairs.Select(k => k.Key).Distinct()
-            .Count(g => string.Equals(g.OwnerUID, _apiController.UID.ToString(), StringComparison.Ordinal)) >= _apiController.ServerInfo.MaxGroupsCreatedByUser))
+            .Count(g => string.Equals(g.OwnerUID.ToString(), _apiController.UID.ToString(), StringComparison.Ordinal)) >= _apiController.ServerInfo.MaxGroupsCreatedByUser))
         {
             if (_uiSharedService.IconTextButton(FontAwesomeIcon.Plus, "Create new Syncshell", buttonX))
             {
@@ -533,7 +533,7 @@ public class TopTabMenu
                         return actEnable(g.UserPair.OwnPermissions);
                     });
 
-                _ = _apiController.SetBulkPermissions(new(bulkIndividualPairs, new(StringComparer.Ordinal))).ConfigureAwait(false);
+                _ = _apiController.SetBulkPermissions(new(bulkIndividualPairs, new())).ConfigureAwait(false);
                 ImGui.CloseCurrentPopup();
             }
 
@@ -547,7 +547,7 @@ public class TopTabMenu
                         return actDisable(g.UserPair.OwnPermissions);
                     });
 
-                _ = _apiController.SetBulkPermissions(new(bulkIndividualPairs, new(StringComparer.Ordinal))).ConfigureAwait(false);
+                _ = _apiController.SetBulkPermissions(new(bulkIndividualPairs, new())).ConfigureAwait(false);
                 ImGui.CloseCurrentPopup();
             }
             ImGui.EndPopup();
@@ -571,7 +571,7 @@ public class TopTabMenu
                         return actEnable(g.GroupUserPermissions);
                     });
 
-                _ = _apiController.SetBulkPermissions(new(new(StringComparer.Ordinal), bulkSyncshells)).ConfigureAwait(false);
+                _ = _apiController.SetBulkPermissions(new(new(), bulkSyncshells)).ConfigureAwait(false);
                 ImGui.CloseCurrentPopup();
             }
 
@@ -583,9 +583,9 @@ public class TopTabMenu
                     .ToDictionary(g => g.Group.GID, g =>
                     {
                         return actDisable(g.GroupUserPermissions);
-                    }, StringComparer.Ordinal);
+                    });
 
-                _ = _apiController.SetBulkPermissions(new(new(StringComparer.Ordinal), bulkSyncshells)).ConfigureAwait(false);
+                _ = _apiController.SetBulkPermissions(new(new(), bulkSyncshells)).ConfigureAwait(false);
                 ImGui.CloseCurrentPopup();
             }
             ImGui.EndPopup();

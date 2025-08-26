@@ -800,7 +800,7 @@ internal sealed partial class CharaDataHubUi
                 using (ImRaii.Group())
                 {
                     InputComboHybrid("##AliasToAdd", "##AliasToAddPicker", ref _specificIndividualAdd, _pairManager.PairsWithGroups.Keys,
-                        static pair => (pair.UserData.UID, pair.UserData.Alias, pair.UserData.AliasOrUID, pair.GetNote()));
+                        static pair => (pair.UserData.UID.ToString(), pair.UserData.Alias, pair.UserData.AliasOrUID, pair.GetNote()));
                     ImGui.SameLine();
                     using (ImRaii.Disabled(string.IsNullOrEmpty(_specificIndividualAdd)
                         || updateDto.UserList.Any(f => string.Equals(f.UID.ToString(), _specificIndividualAdd, StringComparison.Ordinal) || string.Equals(f.Alias, _specificIndividualAdd, StringComparison.Ordinal))))
@@ -845,13 +845,13 @@ internal sealed partial class CharaDataHubUi
                             {
                                 var otherUpdateDto = _charaDataManager.GetUpdateDto(own.Id);
                                 if (otherUpdateDto == null) continue;
-                                foreach (var user in otherUpdateDto.UserList.Select(k => k.UID).Concat(otherUpdateDto.AllowedUsers ?? []).Distinct(StringComparer.Ordinal).ToList())
+                                foreach (var user in otherUpdateDto.UserList.Select(k => k.UID).Concat(otherUpdateDto.AllowedUsers ?? []).Distinct().ToList())
                                 {
-                                    otherUpdateDto.RemoveUserFromList(user);
+                                    otherUpdateDto.RemoveUserFromList(user.ToString());
                                 }
-                                foreach (var user in updateDto.UserList.Select(k => k.UID).Concat(updateDto.AllowedUsers ?? []).Distinct(StringComparer.Ordinal).ToList())
+                                foreach (var user in updateDto.UserList.Select(k => k.UID).Concat(updateDto.AllowedUsers ?? []).Distinct().ToList())
                                 {
-                                    otherUpdateDto.AddUserToList(user);
+                                    otherUpdateDto.AddUserToList(user.ToString());
                                 }
                             }
                         }
@@ -869,10 +869,10 @@ internal sealed partial class CharaDataHubUi
                 using (ImRaii.Group())
                 {
                     InputComboHybrid("##GroupAliasToAdd", "##GroupAliasToAddPicker", ref _specificGroupAdd, _pairManager.Groups.Keys,
-                        group => (group.GID, group.Alias, group.AliasOrGID, _serverConfigurationManager.GetNoteForGid(group.GID)));
+                        group => (group.GID.ToString(), group.Alias, group.AliasOrGID, _serverConfigurationManager.GetNoteForGid(group.GID)));
                     ImGui.SameLine();
                     using (ImRaii.Disabled(string.IsNullOrEmpty(_specificGroupAdd)
-                        || updateDto.GroupList.Any(f => string.Equals(f.GID, _specificGroupAdd, StringComparison.Ordinal) || string.Equals(f.Alias, _specificGroupAdd, StringComparison.Ordinal))))
+                        || updateDto.GroupList.Any(f => string.Equals(f.GID.ToString(), _specificGroupAdd, StringComparison.Ordinal) || string.Equals(f.Alias, _specificGroupAdd, StringComparison.Ordinal))))
                     {
                         if (_uiSharedService.IconButton(FontAwesomeIcon.Plus))
                         {
@@ -889,10 +889,10 @@ internal sealed partial class CharaDataHubUi
                     {
                         foreach (var group in updateDto.GroupList)
                         {
-                            var userString = string.IsNullOrEmpty(group.Alias) ? group.GID : $"{group.Alias} ({group.GID})";
-                            if (ImGui.Selectable(userString, string.Equals(group.GID, _selectedSpecificGroupIndividual, StringComparison.Ordinal)))
+                            var userString = string.IsNullOrEmpty(group.Alias) ? group.GID.ToString() : $"{group.Alias} ({group.GID})";
+                            if (ImGui.Selectable(userString, string.Equals(group.GID.ToString(), _selectedSpecificGroupIndividual, StringComparison.Ordinal)))
                             {
-                                _selectedSpecificGroupIndividual = group.GID;
+                                _selectedSpecificGroupIndividual = group.GID.ToString();
                             }
                         }
                     }
@@ -914,13 +914,13 @@ internal sealed partial class CharaDataHubUi
                             {
                                 var otherUpdateDto = _charaDataManager.GetUpdateDto(own.Id);
                                 if (otherUpdateDto == null) continue;
-                                foreach (var group in otherUpdateDto.GroupList.Select(k => k.GID).Concat(otherUpdateDto.AllowedGroups ?? []).Distinct(StringComparer.Ordinal).ToList())
+                                foreach (var group in otherUpdateDto.GroupList.Select(k => k.GID).Concat(otherUpdateDto.AllowedGroups ?? []).Distinct().ToList())
                                 {
-                                    otherUpdateDto.RemoveGroupFromList(group);
+                                    otherUpdateDto.RemoveGroupFromList(group.ToString());
                                 }
-                                foreach (var group in updateDto.GroupList.Select(k => k.GID).Concat(updateDto.AllowedGroups ?? []).Distinct(StringComparer.Ordinal).ToList())
+                                foreach (var group in updateDto.GroupList.Select(k => k.GID).Concat(updateDto.AllowedGroups ?? []).Distinct().ToList())
                                 {
-                                    otherUpdateDto.AddGroupToList(group);
+                                    otherUpdateDto.AddGroupToList(group.ToString());
                                 }
                             }
                         }

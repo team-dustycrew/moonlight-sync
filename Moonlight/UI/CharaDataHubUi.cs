@@ -393,7 +393,7 @@ internal sealed partial class CharaDataHubUi : WindowMediatorSubscriberBase
                 using (ImRaii.Disabled(handled == null))
                 {
                     _uiSharedService.IconText(FontAwesomeIcon.InfoCircle);
-                    var id = string.IsNullOrEmpty(handled?.MetaInfo.Uploader.UID) ? handled?.MetaInfo.Id : handled.MetaInfo.FullId;
+                    var id = string.IsNullOrEmpty(handled?.MetaInfo.Uploader.UID.ToString()) ? handled?.MetaInfo.Id : handled.MetaInfo.FullId;
                     UiSharedService.AttachToolTip($"Applied Data: {id ?? "No data applied"}");
 
                     ImGui.SameLine();

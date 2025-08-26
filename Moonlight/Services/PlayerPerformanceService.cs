@@ -39,7 +39,7 @@ public class PlayerPerformanceService
         if (!notPausedAfterTris) return false;
 
         if (config.UIDsToIgnore
-            .Exists(uid => string.Equals(uid, pairHandler.Pair.UserData.Alias, StringComparison.Ordinal) || string.Equals(uid, pairHandler.Pair.UserData.UID, StringComparison.Ordinal)))
+            .Exists(uid => string.Equals(uid, pairHandler.Pair.UserData.Alias, StringComparison.Ordinal) || string.Equals(uid, pairHandler.Pair.UserData.UID.ToString(), StringComparison.Ordinal)))
             return true;
 
 
@@ -53,13 +53,13 @@ public class PlayerPerformanceService
         bool exceedsVram = CheckForThreshold(config.WarnOnExceedingThresholds, config.VRAMSizeWarningThresholdMiB * 1024 * 1024,
             vramUsage, config.WarnOnPreferredPermissionsExceedingThresholds, isPrefPerm);
 
-        if (_warnedForPlayers.TryGetValue(pairHandler.Pair.UserData.UID, out bool hadWarning) && hadWarning)
+        if (_warnedForPlayers.TryGetValue(pairHandler.Pair.UserData.UID.ToString(), out bool hadWarning) && hadWarning)
         {
-            _warnedForPlayers[pairHandler.Pair.UserData.UID] = exceedsTris || exceedsVram;
+            _warnedForPlayers[pairHandler.Pair.UserData.UID.ToString()] = exceedsTris || exceedsVram;
             return true;
         }
 
-        _warnedForPlayers[pairHandler.Pair.UserData.UID] = exceedsTris || exceedsVram;
+        _warnedForPlayers[pairHandler.Pair.UserData.UID.ToString()] = exceedsTris || exceedsVram;
 
         if (exceedsVram)
         {
@@ -129,7 +129,7 @@ public class PlayerPerformanceService
 
         // no warning of any kind on ignored pairs
         if (config.UIDsToIgnore
-            .Exists(uid => string.Equals(uid, pair.UserData.Alias, StringComparison.Ordinal) || string.Equals(uid, pair.UserData.UID, StringComparison.Ordinal)))
+            .Exists(uid => string.Equals(uid, pair.UserData.Alias, StringComparison.Ordinal) || string.Equals(uid, pair.UserData.UID.ToString(), StringComparison.Ordinal)))
             return true;
 
         bool isPrefPerm = pair.UserPair.OwnPermissions.HasFlag(MoonLight.API.Data.Enum.UserPermissions.Sticky);
@@ -205,7 +205,7 @@ public class PlayerPerformanceService
 
         // no warning of any kind on ignored pairs
         if (config.UIDsToIgnore
-            .Exists(uid => string.Equals(uid, pair.UserData.Alias, StringComparison.Ordinal) || string.Equals(uid, pair.UserData.UID, StringComparison.Ordinal)))
+            .Exists(uid => string.Equals(uid, pair.UserData.Alias, StringComparison.Ordinal) || string.Equals(uid, pair.UserData.UID.ToString(), StringComparison.Ordinal)))
             return true;
 
         bool isPrefPerm = pair.UserPair.OwnPermissions.HasFlag(MoonLight.API.Data.Enum.UserPermissions.Sticky);

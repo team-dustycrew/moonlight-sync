@@ -58,14 +58,14 @@ public sealed class PairManager : DisposableMediatorSubscriberBase
     {
         if (!_allClientPairs.ContainsKey(dto.User))
             _allClientPairs[dto.User] = _pairFactory.Create(new UserFullPairDto(dto.User, MoonLight.API.Data.Enum.IndividualPairStatus.None,
-                [dto.Group.GID], dto.SelfToOtherPermissions, dto.OtherToSelfPermissions));
-        else _allClientPairs[dto.User].UserPair.Groups.Add(dto.GID);
+                [dto.Group.GID.ToString()], dto.SelfToOtherPermissions, dto.OtherToSelfPermissions));
+        else _allClientPairs[dto.User].UserPair.Groups.Add(dto.GID.ToString());
         RecreateLazy();
     }
 
     public Pair? GetPairByUID(string uid)
     {
-        var existingPair = _allClientPairs.FirstOrDefault(f => f.Key.UID == uid);
+        var existingPair = _allClientPairs.FirstOrDefault(f => f.Key.UID.ToString() == uid);
         if (!Equals(existingPair, default(KeyValuePair<UserData, Pair>)))
         {
             return existingPair.Value;
@@ -180,7 +180,7 @@ public sealed class PairManager : DisposableMediatorSubscriberBase
 
         foreach (var item in _allClientPairs.ToList())
         {
-            item.Value.UserPair.Groups.Remove(data.GID);
+            item.Value.UserPair.Groups.Remove(data.GID.ToString());
 
             if (!item.Value.HasAnyConnection())
             {
@@ -196,7 +196,7 @@ public sealed class PairManager : DisposableMediatorSubscriberBase
     {
         if (_allClientPairs.TryGetValue(dto.User, out var pair))
         {
-            pair.UserPair.Groups.Remove(dto.Group.GID);
+            pair.UserPair.Groups.Remove(dto.Group.GID.ToString());
 
             if (!pair.HasAnyConnection())
             {
@@ -369,7 +369,7 @@ public sealed class PairManager : DisposableMediatorSubscriberBase
             Dictionary<GroupFullInfoDto, List<Pair>> outDict = [];
             foreach (var group in _allGroups)
             {
-                outDict[group.Value] = _allClientPairs.Select(p => p.Value).Where(p => p.UserPair.Groups.Exists(g => GroupDataComparer.Instance.Equals(group.Key, new(g)))).ToList();
+                outDict[group.Value] = _allClientPairs.Select(p => p.Value).Where(p => p.UserPair.Groups.Exists(g => GroupDataComparer.Instance.Equals(group.Key, new(new Guid(g))))).ToList();
             }
             return outDict;
         });
@@ -383,7 +383,7 @@ public sealed class PairManager : DisposableMediatorSubscriberBase
 
             foreach (var pair in _allClientPairs.Select(k => k.Value))
             {
-                outDict[pair] = _allGroups.Where(k => pair.UserPair.Groups.Contains(k.Key.GID, StringComparer.Ordinal)).Select(k => k.Value).ToList();
+                outDict[pair] = _allGroups.Where(k => pair.UserPair.Groups.Contains(k.Key.GID.ToString(), StringComparer.Ordinal)).Select(k => k.Value).ToList();
             }
 
             return outDict;

@@ -33,7 +33,7 @@ public class IdDisplayHandler
     {
         ImGui.SameLine(textPosX);
         (bool textIsUid, string playerText) = GetGroupText(group);
-        if (!string.Equals(_editEntry, group.GID, StringComparison.Ordinal))
+        if (!string.Equals(_editEntry, group.GID.ToString(), StringComparison.Ordinal))
         {
             ImGui.AlignTextToFramePadding();
 
@@ -43,26 +43,26 @@ public class IdDisplayHandler
             if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
             {
                 var prevState = textIsUid;
-                if (_showIdForEntry.ContainsKey(group.GID))
+                if (_showIdForEntry.ContainsKey(group.GID.ToString()))
                 {
-                    prevState = _showIdForEntry[group.GID];
+                    prevState = _showIdForEntry[group.GID.ToString()];
                 }
-                _showIdForEntry[group.GID] = !prevState;
+                _showIdForEntry[group.GID.ToString()] = !prevState;
             }
 
             if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
             {
                 if (_editIsUid)
                 {
-                    _serverManager.SetNoteForUid(_editEntry, _editComment, save: true);
+                    _serverManager.SetNoteForUid(new Guid(_editEntry), _editComment, save: true);
                 }
                 else
                 {
-                    _serverManager.SetNoteForGid(_editEntry, _editComment, save: true);
+                    _serverManager.SetNoteForGid(new Guid(_editEntry), _editComment, save: true);
                 }
 
                 _editComment = _serverManager.GetNoteForGid(group.GID) ?? string.Empty;
-                _editEntry = group.GID;
+                _editEntry = group.GID.ToString();
                 _editIsUid = false;
             }
         }
@@ -89,7 +89,7 @@ public class IdDisplayHandler
     {
         ImGui.SameLine(textPosX);
         (bool textIsUid, string playerText) = GetPlayerText(pair);
-        if (!string.Equals(_editEntry, pair.UserData.UID, StringComparison.Ordinal))
+        if (!string.Equals(_editEntry, pair.UserData.UID.ToString(), StringComparison.Ordinal))
         {
             ImGui.AlignTextToFramePadding();
 
@@ -129,26 +129,26 @@ public class IdDisplayHandler
             if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
             {
                 var prevState = textIsUid;
-                if (_showIdForEntry.ContainsKey(pair.UserData.UID))
+                if (_showIdForEntry.ContainsKey(pair.UserData.UID.ToString()))
                 {
-                    prevState = _showIdForEntry[pair.UserData.UID];
+                    prevState = _showIdForEntry[pair.UserData.UID.ToString()];
                 }
-                _showIdForEntry[pair.UserData.UID] = !prevState;
+                _showIdForEntry[pair.UserData.UID.ToString()] = !prevState;
             }
 
             if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
             {
                 if (_editIsUid)
                 {
-                    _serverManager.SetNoteForUid(_editEntry, _editComment, save: true);
+                    _serverManager.SetNoteForUid(new Guid(_editEntry), _editComment, save: true);
                 }
                 else
                 {
-                    _serverManager.SetNoteForGid(_editEntry, _editComment, save: true);
+                    _serverManager.SetNoteForGid(new Guid(_editEntry), _editComment, save: true);
                 }
 
                 _editComment = pair.GetNote() ?? string.Empty;
-                _editEntry = pair.UserData.UID;
+                _editEntry = pair.UserData.UID.ToString();
                 _editIsUid = true;
             }
 
@@ -252,14 +252,14 @@ public class IdDisplayHandler
 
     private bool ShowGidInsteadOfName(GroupFullInfoDto group)
     {
-        _showIdForEntry.TryGetValue(group.GID, out var showidInsteadOfName);
+        _showIdForEntry.TryGetValue(group.GID.ToString(), out var showidInsteadOfName);
 
         return showidInsteadOfName;
     }
 
     private bool ShowUidInsteadOfName(Pair pair)
     {
-        _showIdForEntry.TryGetValue(pair.UserData.UID, out var showidInsteadOfName);
+        _showIdForEntry.TryGetValue(pair.UserData.UID.ToString(), out var showidInsteadOfName);
 
         return showidInsteadOfName;
     }

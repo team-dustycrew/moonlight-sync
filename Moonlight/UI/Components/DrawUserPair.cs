@@ -308,7 +308,7 @@ public class DrawUserPair
         if (_syncedGroups.Any()) ImGui.Separator();
         foreach (var entry in _syncedGroups)
         {
-            bool selfIsOwner = string.Equals(_apiController.UID, entry.Owner.UID, StringComparison.Ordinal);
+            bool selfIsOwner = string.Equals(_apiController.UID.ToString(), entry.Owner.UID.ToString(), StringComparison.Ordinal);
             bool selfIsModerator = entry.GroupUserInfo.IsModerator();
             bool userIsModerator = entry.GroupPairUserInfos.TryGetValue(_pair.UserData.UID, out var modinfo) && modinfo.IsModerator();
             bool userIsPinned = entry.GroupPairUserInfos.TryGetValue(_pair.UserData.UID, out var info) && info.IsPinned();
@@ -470,7 +470,7 @@ public class DrawUserPair
         {
             var icon = FontAwesomeIcon.None;
             var text = string.Empty;
-            if (string.Equals(_currentGroup.OwnerUID, _pair.UserData.UID.ToString(), StringComparison.Ordinal))
+            if (string.Equals(_currentGroup.OwnerUID.ToString(), _pair.UserData.UID.ToString(), StringComparison.Ordinal))
             {
                 icon = FontAwesomeIcon.Crown;
                 text = "User is owner of this syncshell";

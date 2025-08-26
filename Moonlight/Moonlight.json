@@ -11,3 +11,11 @@
   "IconUrl": "",
   "RepoUrl": "https://github.com/team-dustycrew/moonlight-sync"
 }
+
+
+curl -sX POST https://mnet.live/v1/resolve \
+  -H "Content-Type: application/json" \
+  -H "X-MNet-Key: MClnRWKDEBVXw4xLDnKsEhMGknfENMho9QqoNB0LOzQ"
+
+curl -sX POST https://your-mnet-host/v1/resolve \
+  -H 'X-MNet-Key: MClnRWKDEBVXw4xLDnKsEhMGknfENMho9QqoNB0LOzQ'
