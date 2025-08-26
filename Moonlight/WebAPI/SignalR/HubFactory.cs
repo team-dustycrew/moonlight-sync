@@ -146,7 +146,7 @@ public class HubFactory : MediatorSubscriberBase
             if (!_serverConfigurationManager.CurrentServer.UseOAuth2)
             {
                 var apiKey = _serverConfigurationManager.GetMNetKey();
-                if (!string.IsNullOrEmpty(apiKey))
+                if (string.IsNullOrEmpty(apiKey) == false)
                 {
                     options.Headers.Add("X-MNet-Key", apiKey);
                 }
