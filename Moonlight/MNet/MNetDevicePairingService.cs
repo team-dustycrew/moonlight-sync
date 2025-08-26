@@ -40,12 +40,22 @@ public class MNetDevicePairingService
 
     public async Task<bool> SaveKeyAndConfirmAsync(string apiKey, CancellationToken ct)
     {
+        _client.BaseUrl = _configService.Current.BaseUrl;
         var identity = await _client.ResolveIdentityAsync(apiKey, ct).ConfigureAwait(false);
         _configService.Current.ApiKey = apiKey;
         _configService.Current.LastResolvedIdentity = identity?.discord?.username ?? string.Empty;
         _configService.Current.UpdatedAtUtc = DateTime.UtcNow;
         _configService.Save();
         return true;
+    }
+
+    public string GetBaseUrl() => _configService.Current.BaseUrl;
+
+    public void UpdateBaseUrl(string baseUrl)
+    {
+        if (string.IsNullOrWhiteSpace(baseUrl)) return;
+        _configService.Current.BaseUrl = baseUrl.TrimEnd('/');
+        _configService.Save();
     }
 }
 

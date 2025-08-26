@@ -1301,9 +1301,18 @@ public class SettingsUi : WindowMediatorSubscriberBase
         if (ApiController.ServerAlive)
         {
             _uiShared.BigText(".mNet Settings");
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextUnformatted("Base URL");
+            ImGui.SameLine();
+            var baseUrl = _mnetPairing.GetBaseUrl();
+            ImGui.SetNextItemWidth(300 * ImGuiHelpers.GlobalScale);
+            if (ImGui.InputText("##mnetbase", ref baseUrl, 255))
+            {
+                _mnetPairing.UpdateBaseUrl(baseUrl);
+            }
             if (ImGui.Button("Open .mNet Website"))
             {
-                Util.OpenLink("http://mnet.live");
+                Util.OpenLink(_mnetPairing.GetBaseUrl());
             }
             ImGui.SameLine();
             if (ImGui.Button("Pair"))

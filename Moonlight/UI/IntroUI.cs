@@ -219,7 +219,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
             UiSharedService.TextWrapped("To be able to use Moonlight you will have to register an account.");
             if (ImGui.Button("Register with .mNet"))
             {
-                Util.OpenLink("http://mnet.live");
+                Util.OpenLink(_mnetPairing.GetBaseUrl());
             }
 
             ImGui.SameLine();
