@@ -164,7 +164,7 @@ public class IdDisplayHandler
             ImGui.SetNextItemWidth(editBoxWidth.Invoke());
             if (ImGui.InputTextWithHint("##" + pair.UserData.UID, "Nick/Notes", ref _editComment, 255, ImGuiInputTextFlags.EnterReturnsTrue))
             {
-                _serverManager.SetNoteForUid(pair.UserData.UID, _editComment);
+                _serverManager.SetNoteForUid(new Guid(pair.UserData.UID), _editComment);
                 _serverManager.SaveNotes();
                 _editEntry = string.Empty;
             }
@@ -205,7 +205,7 @@ public class IdDisplayHandler
     {
         var textIsUid = true;
         bool showUidInsteadOfName = ShowUidInsteadOfName(pair);
-        string? playerText = _serverManager.GetNoteForUid(pair.UserData.UID);
+        string? playerText = _serverManager.GetNoteForUid(new Guid(pair.UserData.UID));
         if (!showUidInsteadOfName && playerText != null)
         {
             if (string.IsNullOrEmpty(playerText))

@@ -26,7 +26,7 @@ public record Event
     }
 
     public Event(string EventSource, EventSeverity EventSeverity, string Message)
-        : this(new UserData(Guid.Empty), EventSource, EventSeverity, Message)
+        : this(new UserData(""), EventSource, EventSeverity, Message)
     {
     }
 

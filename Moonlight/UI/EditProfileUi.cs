@@ -63,7 +63,7 @@ public class EditProfileUi : WindowMediatorSubscriberBase
     {
         _uiSharedService.BigText("Current Profile (as saved on server)");
 
-        var profile = _moonlightProfileManager.GetMoonlightProfile(new UserData(_apiController.UID));
+        var profile = _moonlightProfileManager.GetMoonlightProfile(new UserData(_apiController.UID.ToString()));
 
         if (profile.IsFlagged)
         {
@@ -156,7 +156,7 @@ public class EditProfileUi : WindowMediatorSubscriberBase
                     }
 
                     _showFileDialogError = false;
-                    await _apiController.UserSetProfile(new UserProfileDto(new UserData(_apiController.UID), Disabled: false, IsNSFW: null, Convert.ToBase64String(fileContent), Description: null))
+                    await _apiController.UserSetProfile(new UserProfileDto(new UserData(_apiController.UID.ToString()), Disabled: false, IsNSFW: null, Convert.ToBase64String(fileContent), Description: null))
                         .ConfigureAwait(false);
                 });
             });
@@ -165,7 +165,7 @@ public class EditProfileUi : WindowMediatorSubscriberBase
         ImGui.SameLine();
         if (_uiSharedService.IconTextButton(FontAwesomeIcon.Trash, "Clear uploaded profile picture"))
         {
-            _ = _apiController.UserSetProfile(new UserProfileDto(new UserData(_apiController.UID), Disabled: false, IsNSFW: null, "", Description: null));
+            _ = _apiController.UserSetProfile(new UserProfileDto(new UserData(_apiController.UID.ToString()), Disabled: false, IsNSFW: null, "", Description: null));
         }
         UiSharedService.AttachToolTip("Clear your currently uploaded profile picture");
         if (_showFileDialogError)
@@ -175,7 +175,7 @@ public class EditProfileUi : WindowMediatorSubscriberBase
         var isNsfw = profile.IsNSFW;
         if (ImGui.Checkbox("Profile is NSFW", ref isNsfw))
         {
-            _ = _apiController.UserSetProfile(new UserProfileDto(new UserData(_apiController.UID), Disabled: false, isNsfw, ProfilePictureBase64: null, Description: null));
+            _ = _apiController.UserSetProfile(new UserProfileDto(new UserData(_apiController.UID.ToString()), Disabled: false, isNsfw, ProfilePictureBase64: null, Description: null));
         }
         _uiSharedService.DrawHelpText("If your profile description or image can be considered NSFW, toggle this to ON");
         var widthTextBox = 400;
@@ -214,13 +214,13 @@ public class EditProfileUi : WindowMediatorSubscriberBase
 
         if (_uiSharedService.IconTextButton(FontAwesomeIcon.Save, "Save Description"))
         {
-            _ = _apiController.UserSetProfile(new UserProfileDto(new UserData(_apiController.UID), Disabled: false, IsNSFW: null, ProfilePictureBase64: null, _descriptionText));
+            _ = _apiController.UserSetProfile(new UserProfileDto(new UserData(_apiController.UID.ToString()), Disabled: false, IsNSFW: null, ProfilePictureBase64: null, _descriptionText));
         }
         UiSharedService.AttachToolTip("Sets your profile description text");
         ImGui.SameLine();
         if (_uiSharedService.IconTextButton(FontAwesomeIcon.Trash, "Clear Description"))
         {
-            _ = _apiController.UserSetProfile(new UserProfileDto(new UserData(_apiController.UID), Disabled: false, IsNSFW: null, ProfilePictureBase64: null, ""));
+            _ = _apiController.UserSetProfile(new UserProfileDto(new UserData(_apiController.UID.ToString()), Disabled: false, IsNSFW: null, ProfilePictureBase64: null, ""));
         }
         UiSharedService.AttachToolTip("Clears your profile description text");
     }

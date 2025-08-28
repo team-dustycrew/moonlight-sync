@@ -137,7 +137,7 @@ public class SyncshellAdminUI : WindowMediatorSubscriberBase
                             ImGui.TableHeadersRow();
 
                             var groupedPairs = new Dictionary<Pair, GroupPairUserInfo?>(pairs.Select(p => new KeyValuePair<Pair, GroupPairUserInfo?>(p,
-                                GroupFullInfo.GroupPairUserInfos.TryGetValue(p.UserData.UID, out GroupPairUserInfo value) ? value : null)));
+                                GroupFullInfo.GroupPairUserInfos.TryGetValue(new Guid(p.UserData.UID), out GroupPairUserInfo value) ? value : null)));
 
                             foreach (var pair in groupedPairs.OrderBy(p =>
                             {

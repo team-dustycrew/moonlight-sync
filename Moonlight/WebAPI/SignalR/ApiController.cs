@@ -215,7 +215,18 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
     /// <summary>
     /// Gets the unique identifier for the current user, or empty GUID if not connected
     /// </summary>
-    public Guid UID => _connectionDto?.User.UID ?? Guid.Empty;
+    public Guid UID
+    {
+        get
+        {
+            if (_connectionDto?.User.UID != null)
+            {
+                return new Guid(_connectionDto?.User.UID);
+            }
+            
+            return Guid.Empty;
+        }
+    }
 
     /// <summary>
     /// Performs a health check on the client connection to ensure it's still valid

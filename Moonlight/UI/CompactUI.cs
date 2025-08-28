@@ -223,7 +223,7 @@ public class CompactUi : WindowMediatorSubscriberBase
                 ImGui.InputTextWithHint("##noteforuser", $"Note for {_lastAddedUser.UserData.AliasOrUID}", ref _lastAddedUserComment, 100);
                 if (_uiSharedService.IconTextButton(FontAwesomeIcon.Save, "Save Note"))
                 {
-                    _serverManager.SetNoteForUid(_lastAddedUser.UserData.UID, _lastAddedUserComment);
+                    _serverManager.SetNoteForUid(new Guid(_lastAddedUser.UserData.UID), _lastAddedUserComment);
                     _lastAddedUser = null;
                     _lastAddedUserComment = string.Empty;
                     _showModalForUserAddition = false;
@@ -495,8 +495,8 @@ public class CompactUi : WindowMediatorSubscriberBase
                 .OrderByDescending(u => u.Key.IsOnline)
                 .ThenBy(u =>
                 {
-                    if (u.Key.UserData.UID == group.OwnerUID) return 0;
-                    if (group.GroupPairUserInfos.TryGetValue(u.Key.UserData.UID, out var info))
+                    if (u.Key.UserData.UID == group.OwnerUID.ToString()) return 0;
+                    if (group.GroupPairUserInfos.TryGetValue(new Guid(u.Key.UserData.UID), out var info))
                     {
                         if (info.IsModerator()) return 1;
                         if (info.IsPinned()) return 2;

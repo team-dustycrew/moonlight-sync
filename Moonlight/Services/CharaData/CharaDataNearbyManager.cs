@@ -201,7 +201,7 @@ public sealed class CharaDataNearbyManager : DisposableMediatorSubscriberBase
         foreach (var data in _metaInfoCache.Where(d => (string.IsNullOrWhiteSpace(UserNoteFilter)
             || ((d.Key.Alias ?? string.Empty).Contains(UserNoteFilter, StringComparison.OrdinalIgnoreCase)
             || d.Key.AliasOrUID.Contains(UserNoteFilter, StringComparison.OrdinalIgnoreCase)
-            || (_serverConfigurationManager.GetNoteForUid(d.Key.UID) ?? string.Empty).Contains(UserNoteFilter, StringComparison.OrdinalIgnoreCase))))
+            || (_serverConfigurationManager.GetNoteForUid(new Guid(d.Key.UID)) ?? string.Empty).Contains(UserNoteFilter, StringComparison.OrdinalIgnoreCase))))
             .ToDictionary(k => k.Key, k => k.Value))
         {
             // filter all poses based on territory, that always must be correct

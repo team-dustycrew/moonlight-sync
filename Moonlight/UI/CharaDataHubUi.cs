@@ -757,7 +757,7 @@ internal sealed partial class CharaDataHubUi : WindowMediatorSubscriberBase
                     _filteredDict = _charaDataManager.SharedWithYouData
                         .ToDictionary(k =>
                         {
-                            var note = _serverConfigurationManager.GetNoteForUid(k.Key.UID);
+                            var note = _serverConfigurationManager.GetNoteForUid(new Guid(k.Key.UID));
                             if (note == null) return k.Key.AliasOrUID;
                             return $"{note} ({k.Key.AliasOrUID})";
                         }, k => k.Value, StringComparer.OrdinalIgnoreCase)

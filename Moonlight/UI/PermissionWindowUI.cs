@@ -138,7 +138,7 @@ public class PermissionWindowUI : WindowMediatorSubscriberBase
                 _ = _apiController.SetBulkPermissions(new(
                     new()
                     {
-                        { Pair.UserData.UID, _ownPermissions }
+                        { new Guid(Pair.UserData.UID), _ownPermissions }
                     },
                     new()
                 ));
@@ -170,7 +170,7 @@ public class PermissionWindowUI : WindowMediatorSubscriberBase
             _ = _apiController.SetBulkPermissions(new(
                 new()
                 {
-                    { Pair.UserData.UID, _ownPermissions }
+                    { new Guid(Pair.UserData.UID), _ownPermissions }
                 },
                 new()
             ));

@@ -488,7 +488,7 @@ public sealed partial class CharaDataManager : DisposableMediatorSubscriberBase
 
                 DataApplicationProgress = "Applying MCDF data";
 
-                var extended = await CharaDataMetaInfoExtendedDto.Create(new(charaFile.FilePath, new UserData(Guid.Empty)), _dalamudUtilService)
+                var extended = await CharaDataMetaInfoExtendedDto.Create(new(charaFile.FilePath, new UserData("")), _dalamudUtilService)
                     .ConfigureAwait(false);
                 await ApplyDataAsync(applicationId, tempHandler, isSelf, autoRevert: false, extended,
                     extractedFiles, charaFile.CharaFileData.ManipulationData, charaFile.CharaFileData.GlamourerData,

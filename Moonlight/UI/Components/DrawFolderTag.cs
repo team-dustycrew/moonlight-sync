@@ -167,7 +167,7 @@ public class DrawFolderTag : DrawFolderBase
     private void PauseRemainingPairs(IEnumerable<Pair> availablePairs)
     {
         _ = _apiController.SetBulkPermissions(new(availablePairs
-            .ToDictionary(g => g.UserData.UID, g =>
+            .ToDictionary(g => new Guid(g.UserData.UID), g =>
         {
             var perm = g.UserPair.OwnPermissions;
             perm.SetPaused(paused: true);
@@ -179,7 +179,7 @@ public class DrawFolderTag : DrawFolderBase
     private void ResumeAllPairs(IEnumerable<Pair> availablePairs)
     {
         _ = _apiController.SetBulkPermissions(new(availablePairs
-            .ToDictionary(g => g.UserData.UID, g =>
+            .ToDictionary(g => new Guid(g.UserData.UID), g =>
             {
                 var perm = g.UserPair.OwnPermissions;
                 perm.SetPaused(paused: false);

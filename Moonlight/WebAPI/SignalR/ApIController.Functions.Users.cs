@@ -93,7 +93,7 @@ public partial class ApiController
     {
         await SetBulkPermissions(new(new()
         {
-                { userPermissions.User.UID, userPermissions.Permissions }
+                { new Guid(userPermissions.User.UID), userPermissions.Permissions }
             }, new())).ConfigureAwait(false);
     }
 

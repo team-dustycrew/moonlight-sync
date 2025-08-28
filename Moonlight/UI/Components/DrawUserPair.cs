@@ -310,8 +310,8 @@ public class DrawUserPair
         {
             bool selfIsOwner = string.Equals(_apiController.UID.ToString(), entry.Owner.UID.ToString(), StringComparison.Ordinal);
             bool selfIsModerator = entry.GroupUserInfo.IsModerator();
-            bool userIsModerator = entry.GroupPairUserInfos.TryGetValue(_pair.UserData.UID, out var modinfo) && modinfo.IsModerator();
-            bool userIsPinned = entry.GroupPairUserInfos.TryGetValue(_pair.UserData.UID, out var info) && info.IsPinned();
+            bool userIsModerator = entry.GroupPairUserInfos.TryGetValue(new Guid(_pair.UserData.UID), out var modinfo) && modinfo.IsModerator();
+            bool userIsPinned = entry.GroupPairUserInfos.TryGetValue(new Guid(_pair.UserData.UID), out var info) && info.IsPinned();
             if (selfIsOwner || selfIsModerator)
             {
                 var groupNote = _serverConfigurationManager.GetNoteForGid(entry.GID);
@@ -475,7 +475,7 @@ public class DrawUserPair
                 icon = FontAwesomeIcon.Crown;
                 text = "User is owner of this syncshell";
             }
-            else if (_currentGroup.GroupPairUserInfos.TryGetValue(_pair.UserData.UID, out var userinfo))
+            else if (_currentGroup.GroupPairUserInfos.TryGetValue(new Guid(_pair.UserData.UID), out var userinfo))
             {
                 if (userinfo.IsModerator())
                 {
@@ -527,7 +527,7 @@ public class DrawUserPair
             if (_uiSharedService.IconTextButton(FontAwesomeIcon.Thumbtack, pinText, _menuWidth, true))
             {
                 ImGui.CloseCurrentPopup();
-                if (!group.GroupPairUserInfos.TryGetValue(_pair.UserData.UID, out var userinfo))
+                if (!group.GroupPairUserInfos.TryGetValue(new Guid(_pair.UserData.UID), out var userinfo))
                 {
                     userinfo = MoonLight.API.Data.Enum.GroupPairUserInfo.IsPinned;
                 }
@@ -563,7 +563,7 @@ public class DrawUserPair
             if (_uiSharedService.IconTextButton(FontAwesomeIcon.UserShield, modText, _menuWidth, true) && UiSharedService.CtrlPressed())
             {
                 ImGui.CloseCurrentPopup();
-                if (!group.GroupPairUserInfos.TryGetValue(_pair.UserData.UID, out var userinfo))
+                if (!group.GroupPairUserInfos.TryGetValue(new Guid(_pair.UserData.UID), out var userinfo))
                 {
                     userinfo = MoonLight.API.Data.Enum.GroupPairUserInfo.IsModerator;
                 }

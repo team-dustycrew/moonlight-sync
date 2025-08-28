@@ -198,12 +198,12 @@ public sealed record CharaDataExtendedUpdateDto : CharaDataUpdateDto
         // Accept either GUID or vanity string. If it's a GUID string, parse it
         if (Guid.TryParse(user, out var guid))
         {
-            _userList.Add(new(guid, null));
+            _userList.Add(new(guid.ToString(), null));
         }
         else
         {
             // Keep vanity identifier as alias, GUID unknown; server will validate
-            _userList.Add(new(Guid.Empty, user));
+            _userList.Add(new("", user));
         }
         UpdateAllowedUsers();
     }
@@ -216,9 +216,9 @@ public sealed record CharaDataExtendedUpdateDto : CharaDataUpdateDto
 
     private void UpdateAllowedUsers()
     {
-        AllowedUsers = [.. _userList.Select(u => u.UID)];
-        if (!AllowedUsers.Except(_charaDataFullDto.AllowedUsers.Select(u => u.UID)).Any()
-            && !_charaDataFullDto.AllowedUsers.Select(u => u.UID).Except(AllowedUsers).Any())
+        AllowedUsers = [.. _userList.Select(u => new Guid(u.UID))];
+        if (!AllowedUsers.Except(_charaDataFullDto.AllowedUsers.Select(u => new Guid(u.UID))).Any()
+            && !_charaDataFullDto.AllowedUsers.Select(u => new Guid(u.UID)).Except(AllowedUsers).Any())
         {
             AllowedUsers = null;
         }
@@ -238,7 +238,7 @@ public sealed record CharaDataExtendedUpdateDto : CharaDataUpdateDto
     {
         if (Guid.TryParse(user, out var guid))
         {
-            _userList.RemoveAll(u => u.UID == guid);
+            _userList.RemoveAll(u => u.UID == guid.ToString());
         }
         else
         {

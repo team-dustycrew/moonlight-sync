@@ -845,11 +845,11 @@ internal sealed partial class CharaDataHubUi
                             {
                                 var otherUpdateDto = _charaDataManager.GetUpdateDto(own.Id);
                                 if (otherUpdateDto == null) continue;
-                                foreach (var user in otherUpdateDto.UserList.Select(k => k.UID).Concat(otherUpdateDto.AllowedUsers ?? []).Distinct().ToList())
+                                foreach (var user in otherUpdateDto.UserList.Select(k => new Guid(k.UID)).Concat(otherUpdateDto.AllowedUsers ?? []).Distinct().ToList())
                                 {
                                     otherUpdateDto.RemoveUserFromList(user.ToString());
                                 }
-                                foreach (var user in updateDto.UserList.Select(k => k.UID).Concat(updateDto.AllowedUsers ?? []).Distinct().ToList())
+                                foreach (var user in updateDto.UserList.Select(k => new Guid(k.UID)).Concat(updateDto.AllowedUsers ?? []).Distinct().ToList())
                                 {
                                     otherUpdateDto.AddUserToList(user.ToString());
                                 }
