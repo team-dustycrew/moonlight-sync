@@ -132,7 +132,7 @@ public sealed partial class CharaDataManager : DisposableMediatorSubscriberBase
         {
             if (string.IsNullOrEmpty(charaName)) return;
 
-            var download = await _apiController.CharaDataDownload(dataMetaInfoDto.Uploader.UID + ":" + dataMetaInfoDto.Id).ConfigureAwait(false);
+            var download = await _apiController.CharaDataDownload(dataMetaInfoDto.Uploader.publicUserID + ":" + dataMetaInfoDto.Id).ConfigureAwait(false);
             if (download == null)
             {
                 DataApplicationTask = null;
@@ -423,7 +423,7 @@ public sealed partial class CharaDataManager : DisposableMediatorSubscriberBase
         var result = await GetSharedWithYouTask.ConfigureAwait(false);
         foreach (var grouping in result.GroupBy(r => r.Uploader))
         {
-            var pair = _pairManager.GetPairByUID(grouping.Key.UID.ToString());
+            var pair = _pairManager.GetPairByUID(grouping.Key.publicUserID.ToString());
             if (pair?.IsPaused ?? false) continue;
             List<CharaDataMetaInfoExtendedDto> newList = new();
             foreach (var item in grouping)
@@ -834,7 +834,7 @@ public sealed partial class CharaDataManager : DisposableMediatorSubscriberBase
             Logger.LogTrace("[{appId}] Applying data in Penumbra", applicationId);
 
             DataApplicationProgress = "Applying Penumbra information";
-            penumbraCollection = await _ipcManager.Penumbra.CreateTemporaryCollectionAsync(Logger, new Guid(metaInfo.Uploader.UID + metaInfo.Id)).ConfigureAwait(false);
+            penumbraCollection = await _ipcManager.Penumbra.CreateTemporaryCollectionAsync(Logger, new Guid(metaInfo.Uploader.publicUserID + metaInfo.Id)).ConfigureAwait(false);
             var idx = await _dalamudUtilService.RunOnFrameworkThread(() => tempHandler.GetGameObject()?.ObjectIndex).ConfigureAwait(false) ?? 0;
             await _ipcManager.Penumbra.AssignTemporaryCollectionAsync(Logger, penumbraCollection, idx).ConfigureAwait(false);
             await _ipcManager.Penumbra.SetTemporaryModsAsync(Logger, applicationId, penumbraCollection, modPaths).ConfigureAwait(false);
@@ -893,7 +893,7 @@ public sealed partial class CharaDataManager : DisposableMediatorSubscriberBase
             if (!_dalamudUtilService.IsInGpose)
                 Mediator.Publish(new HaltCharaDataCreation(Resume: true));
 
-            if (metaInfo != null && _configService.Current.FavoriteCodes.TryGetValue(metaInfo.Uploader.UID + ":" + metaInfo.Id, out var favorite) && favorite != null)
+            if (metaInfo != null && _configService.Current.FavoriteCodes.TryGetValue(metaInfo.Uploader.publicUserID + ":" + metaInfo.Id, out var favorite) && favorite != null)
             {
                 favorite.LastDownloaded = DateTime.UtcNow;
                 _configService.Save();

@@ -234,7 +234,7 @@ public sealed class FileUploadManager : DisposableMediatorSubscriberBase
         unverifiedUploadHashes = unverifiedUploadHashes.Where(h => _fileDbManager.GetFileCacheByHash(h) != null).ToHashSet(StringComparer.Ordinal);
 
         Logger.LogDebug("Verifying {count} files", unverifiedUploadHashes.Count);
-        var filesToUpload = await FilesSend([.. unverifiedUploadHashes], visiblePlayers.Select(p => p.UID.ToString()).ToList(), uploadToken).ConfigureAwait(false);
+        var filesToUpload = await FilesSend([.. unverifiedUploadHashes], visiblePlayers.Select(p => p.publicUserID.ToString()).ToList(), uploadToken).ConfigureAwait(false);
 
         foreach (var file in filesToUpload.Where(f => !f.IsForbidden).DistinctBy(f => f.Hash))
         {

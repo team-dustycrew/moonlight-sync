@@ -183,7 +183,7 @@ internal sealed partial class CharaDataHubUi
 				.GroupBy(k => k.Uploader)
 				.ToDictionary(k =>
 				{
-					var note = _serverConfigurationManager.GetNoteForUid(new Guid(k.Key.UID));
+					var note = _serverConfigurationManager.GetNoteForUid(new Guid(k.Key.publicUserID));
 					if (note == null) return k.Key.AliasOrUID;
 					return $"{note} ({k.Key.AliasOrUID})";
 				}, k => k.ToList(), StringComparer.OrdinalIgnoreCase)

@@ -50,7 +50,7 @@ public class DrawEntityFactory
         IImmutableList<Pair> allPairs)
     {
         return new DrawFolderGroup(groupFullInfoDto.Group.GID.ToString(), groupFullInfoDto, _apiController,
-            filteredPairs.Select(p => CreateDrawPair(new Guid(groupFullInfoDto.Group.GID.ToString() + p.Key.UserData.UID.ToString()), p.Key, p.Value, groupFullInfoDto)).ToImmutableList(),
+            filteredPairs.Select(p => CreateDrawPair(new Guid(groupFullInfoDto.Group.GID.ToString() + p.Key.UserData.publicUserID.ToString()), p.Key, p.Value, groupFullInfoDto)).ToImmutableList(),
             allPairs, _tagHandler, _uidDisplayHandler, _mediator, _uiSharedService);
     }
 
@@ -64,7 +64,7 @@ public class DrawEntityFactory
 
     public DrawUserPair CreateDrawPair(Guid id, Pair user, List<GroupFullInfoDto> groups, GroupFullInfoDto? currentGroup)
     {
-        return new DrawUserPair(id + user.UserData.UID.ToString(), user, groups, currentGroup, _apiController, _uidDisplayHandler,
+        return new DrawUserPair(id + user.UserData.publicUserID.ToString(), user, groups, currentGroup, _apiController, _uidDisplayHandler,
             _mediator, _selectTagForPairUi, _serverConfigurationManager, _uiSharedService, _playerPerformanceConfigService,
             _charaDataManager);
     }

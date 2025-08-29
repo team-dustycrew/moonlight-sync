@@ -110,7 +110,7 @@ public class Pair
 
         if (CachedPlayer == null)
         {
-            _logger.LogDebug("Received Data for {uid} but CachedPlayer does not exist, waiting", data.User.UID);
+            _logger.LogDebug("Received Data for {uid} but CachedPlayer does not exist, waiting", data.User.publicUserID);
             _ = Task.Run(async () =>
             {
                 using var timeoutCts = new CancellationTokenSource();
@@ -124,7 +124,7 @@ public class Pair
 
                 if (!combined.IsCancellationRequested)
                 {
-                    _logger.LogDebug("Applying delayed data for {uid}", data.User.UID);
+                    _logger.LogDebug("Applying delayed data for {uid}", data.User.publicUserID);
                     ApplyLastReceivedData();
                 }
             });
@@ -172,7 +172,7 @@ public class Pair
 
     public string? GetNote()
     {
-        return _serverConfigurationManager.GetNoteForUid(new Guid(UserData.UID));
+        return _serverConfigurationManager.GetNoteForUid(new Guid(UserData.publicUserID));
     }
 
     public string GetPlayerNameHash()
@@ -206,7 +206,7 @@ public class Pair
 
     public void SetNote(string note)
     {
-        _serverConfigurationManager.SetNoteForUid(new Guid(UserData.UID), note);
+        _serverConfigurationManager.SetNoteForUid(new Guid(UserData.publicUserID), note);
     }
 
     internal void SetIsUploading()

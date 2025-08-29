@@ -800,10 +800,10 @@ internal sealed partial class CharaDataHubUi
                 using (ImRaii.Group())
                 {
                     InputComboHybrid("##AliasToAdd", "##AliasToAddPicker", ref _specificIndividualAdd, _pairManager.PairsWithGroups.Keys,
-                        static pair => (pair.UserData.UID.ToString(), pair.UserData.Alias, pair.UserData.AliasOrUID, pair.GetNote()));
+                        static pair => (pair.UserData.publicUserID.ToString(), pair.UserData.Alias, pair.UserData.AliasOrUID, pair.GetNote()));
                     ImGui.SameLine();
                     using (ImRaii.Disabled(string.IsNullOrEmpty(_specificIndividualAdd)
-                        || updateDto.UserList.Any(f => string.Equals(f.UID.ToString(), _specificIndividualAdd, StringComparison.Ordinal) || string.Equals(f.Alias, _specificIndividualAdd, StringComparison.Ordinal))))
+                        || updateDto.UserList.Any(f => string.Equals(f.publicUserID.ToString(), _specificIndividualAdd, StringComparison.Ordinal) || string.Equals(f.Alias, _specificIndividualAdd, StringComparison.Ordinal))))
                     {
                         if (_uiSharedService.IconButton(FontAwesomeIcon.Plus))
                         {
@@ -820,10 +820,10 @@ internal sealed partial class CharaDataHubUi
                     {
                         foreach (var user in updateDto.UserList)
                         {
-                            var userString = string.IsNullOrEmpty(user.Alias) ? user.UID.ToString() : $"{user.Alias} ({user.UID})";
-                            if (ImGui.Selectable(userString, string.Equals(user.UID.ToString(), _selectedSpecificUserIndividual, StringComparison.Ordinal)))
+                            var userString = string.IsNullOrEmpty(user.Alias) ? user.publicUserID.ToString() : $"{user.Alias} ({user.publicUserID})";
+                            if (ImGui.Selectable(userString, string.Equals(user.publicUserID.ToString(), _selectedSpecificUserIndividual, StringComparison.Ordinal)))
                             {
-                                _selectedSpecificUserIndividual = user.UID.ToString();
+                                _selectedSpecificUserIndividual = user.publicUserID.ToString();
                             }
                         }
                     }
@@ -845,11 +845,11 @@ internal sealed partial class CharaDataHubUi
                             {
                                 var otherUpdateDto = _charaDataManager.GetUpdateDto(own.Id);
                                 if (otherUpdateDto == null) continue;
-                                foreach (var user in otherUpdateDto.UserList.Select(k => new Guid(k.UID)).Concat(otherUpdateDto.AllowedUsers ?? []).Distinct().ToList())
+                                foreach (var user in otherUpdateDto.UserList.Select(k => new Guid(k.publicUserID)).Concat(otherUpdateDto.AllowedUsers ?? []).Distinct().ToList())
                                 {
                                     otherUpdateDto.RemoveUserFromList(user.ToString());
                                 }
-                                foreach (var user in updateDto.UserList.Select(k => new Guid(k.UID)).Concat(updateDto.AllowedUsers ?? []).Distinct().ToList())
+                                foreach (var user in updateDto.UserList.Select(k => new Guid(k.publicUserID)).Concat(updateDto.AllowedUsers ?? []).Distinct().ToList())
                                 {
                                     otherUpdateDto.AddUserToList(user.ToString());
                                 }

@@ -201,7 +201,7 @@ public sealed class Plugin : IDalamudPlugin
 
             // add scoped services
             collection.AddScoped<DrawEntityFactory>();
-            collection.AddScoped<CacheMonitor>();
+            collection.AddSingleton<CacheMonitor>();
             collection.AddScoped<UiFactory>();
             collection.AddScoped<SelectTagForPairUi>();
             collection.AddScoped<WindowMediatorSubscriberBase, SettingsUi>();

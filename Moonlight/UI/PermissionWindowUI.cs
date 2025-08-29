@@ -22,7 +22,7 @@ public class PermissionWindowUI : WindowMediatorSubscriberBase
 
     public PermissionWindowUI(ILogger<PermissionWindowUI> logger, Pair pair, MoonlightMediator mediator, UiSharedService uiSharedService,
         ApiController apiController, PerformanceCollectorService performanceCollectorService)
-        : base(logger, mediator, "Permissions for " + pair.UserData.AliasOrUID + "###MoonlightPermissions" + pair.UserData.UID, performanceCollectorService)
+        : base(logger, mediator, "Permissions for " + pair.UserData.AliasOrUID + "###MoonlightPermissions" + pair.UserData.publicUserID, performanceCollectorService)
     {
         Pair = pair;
         _uiSharedService = uiSharedService;
@@ -138,7 +138,7 @@ public class PermissionWindowUI : WindowMediatorSubscriberBase
                 _ = _apiController.SetBulkPermissions(new(
                     new()
                     {
-                        { new Guid(Pair.UserData.UID), _ownPermissions }
+                        { new Guid(Pair.UserData.publicUserID), _ownPermissions }
                     },
                     new()
                 ));
@@ -163,14 +163,14 @@ public class PermissionWindowUI : WindowMediatorSubscriberBase
         {
             var defaultPermissions = _apiController.DefaultPermissions!;
             _ownPermissions.SetSticky(Pair.IsDirectlyPaired || defaultPermissions.IndividualIsSticky);
-            _ownPermissions.SetPaused(false);
+        _ownPermissions.SetPaused(false);
             _ownPermissions.SetDisableVFX(Pair.IsDirectlyPaired ? defaultPermissions.DisableIndividualVFX : defaultPermissions.DisableGroupVFX);
             _ownPermissions.SetDisableSounds(Pair.IsDirectlyPaired ? defaultPermissions.DisableIndividualSounds : defaultPermissions.DisableGroupSounds);
             _ownPermissions.SetDisableAnimations(Pair.IsDirectlyPaired ? defaultPermissions.DisableIndividualAnimations : defaultPermissions.DisableGroupAnimations);
             _ = _apiController.SetBulkPermissions(new(
                 new()
                 {
-                    { new Guid(Pair.UserData.UID), _ownPermissions }
+                    { new Guid(Pair.UserData.publicUserID), _ownPermissions }
                 },
                 new()
             ));

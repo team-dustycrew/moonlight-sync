@@ -54,18 +54,18 @@ public class SelectPairForTagUi
                 .OrderBy(p => PairName(p), StringComparer.OrdinalIgnoreCase)
                 .ToList())
             {
-                var isInGroup = _peopleInGroup.Contains(item.UserData.UID.ToString());
+                var isInGroup = _peopleInGroup.Contains(item.UserData.publicUserID.ToString());
                 if (ImGui.Checkbox(PairName(item), ref isInGroup))
                 {
                     if (isInGroup)
                     {
-                        _tagHandler.AddTagToPairedUid(item.UserData.UID.ToString(), _tag);
-                        _peopleInGroup.Add(item.UserData.UID.ToString());
+                        _tagHandler.AddTagToPairedUid(item.UserData.publicUserID.ToString(), _tag);
+                        _peopleInGroup.Add(item.UserData.publicUserID.ToString());
                     }
                     else
                     {
-                        _tagHandler.RemoveTagFromPairedUid(item.UserData.UID.ToString(), _tag);
-                        _peopleInGroup.Remove(item.UserData.UID.ToString());
+                        _tagHandler.RemoveTagFromPairedUid(item.UserData.publicUserID.ToString(), _tag);
+                        _peopleInGroup.Remove(item.UserData.publicUserID.ToString());
                     }
                 }
             }

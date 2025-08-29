@@ -120,7 +120,7 @@ internal sealed partial class CharaDataHubUi
     private void DrawLobbyUser(GposeLobbyUserData user,
         IEnumerable<Dalamud.Game.ClientState.Objects.Types.ICharacter?> gposeCharas)
     {
-        using var id = ImRaii.PushId(user.UserData.UID.ToString());
+        using var id = ImRaii.PushId(user.UserData.publicUserID.ToString());
         using var indent = ImRaii.PushIndent(5f);
         var sameMapAndServer = _charaDataGposeTogetherManager.IsOnSameMapAndServer(user);
         var width = ImGui.GetContentRegionAvail().X - 5;
@@ -128,7 +128,7 @@ internal sealed partial class CharaDataHubUi
         {
             var availWidth = ImGui.GetContentRegionAvail().X;
             ImGui.AlignTextToFramePadding();
-            var note = _serverConfigurationManager.GetNoteForUid(new Guid(user.UserData.UID));
+            var note = _serverConfigurationManager.GetNoteForUid(new Guid(user.UserData.publicUserID));
             var userText = note == null ? user.UserData.AliasOrUID : $"{note} ({user.UserData.AliasOrUID})";
             UiSharedService.ColorText(userText, ImGuiColors.ParsedGreen);
 

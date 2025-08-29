@@ -316,7 +316,7 @@ public partial class UiSharedService : DisposableMediatorSubscriberBase
             var note = entry.GetNote();
             if (note.IsNullOrEmpty()) continue;
 
-            sb.Append(entry.UserData.UID).Append(":\"").Append(entry.GetNote()).AppendLine("\"");
+            sb.Append(entry.UserData.publicUserID).Append(":\"").Append(entry.GetNote()).AppendLine("\"");
         }
         sb.AppendLine(_notesEnd);
 

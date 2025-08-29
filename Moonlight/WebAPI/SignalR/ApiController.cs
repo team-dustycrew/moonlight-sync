@@ -219,9 +219,9 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
     {
         get
         {
-            if (_connectionDto?.User.UID != null)
+            if (_connectionDto?.User.publicUserID != null)
             {
-                return new Guid(_connectionDto?.User.UID);
+                return new Guid(_connectionDto?.User.publicUserID);
             }
             
             return Guid.Empty;

@@ -65,7 +65,7 @@ public sealed class PairManager : DisposableMediatorSubscriberBase
 
     public Pair? GetPairByUID(string uid)
     {
-        var existingPair = _allClientPairs.FirstOrDefault(f => f.Key.UID.ToString() == uid);
+        var existingPair = _allClientPairs.FirstOrDefault(f => f.Key.publicUserID.ToString() == uid);
         if (!Equals(existingPair, default(KeyValuePair<UserData, Pair>)))
         {
             return existingPair.Value;
@@ -297,7 +297,7 @@ public sealed class PairManager : DisposableMediatorSubscriberBase
 
     internal void SetGroupPairStatusInfo(GroupPairUserInfoDto dto)
     {
-        _allGroups[dto.Group].GroupPairUserInfos[dto.UID] = dto.GroupUserInfo;
+        _allGroups[dto.Group].GroupPairUserInfos[new Guid(dto.UID)] = dto.GroupUserInfo;
         RecreateLazy();
     }
 

@@ -216,9 +216,9 @@ public sealed record CharaDataExtendedUpdateDto : CharaDataUpdateDto
 
     private void UpdateAllowedUsers()
     {
-        AllowedUsers = [.. _userList.Select(u => new Guid(u.UID))];
-        if (!AllowedUsers.Except(_charaDataFullDto.AllowedUsers.Select(u => new Guid(u.UID))).Any()
-            && !_charaDataFullDto.AllowedUsers.Select(u => new Guid(u.UID)).Except(AllowedUsers).Any())
+        AllowedUsers = [.. _userList.Select(u => new Guid(u.publicUserID))];
+        if (!AllowedUsers.Except(_charaDataFullDto.AllowedUsers.Select(u => new Guid(u.publicUserID))).Any()
+            && !_charaDataFullDto.AllowedUsers.Select(u => new Guid(u.publicUserID)).Except(AllowedUsers).Any())
         {
             AllowedUsers = null;
         }
@@ -238,7 +238,7 @@ public sealed record CharaDataExtendedUpdateDto : CharaDataUpdateDto
     {
         if (Guid.TryParse(user, out var guid))
         {
-            _userList.RemoveAll(u => u.UID == guid.ToString());
+            _userList.RemoveAll(u => u.publicUserID == guid.ToString());
         }
         else
         {

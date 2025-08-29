@@ -137,7 +137,7 @@ public class SyncshellAdminUI : WindowMediatorSubscriberBase
                             ImGui.TableHeadersRow();
 
                             var groupedPairs = new Dictionary<Pair, GroupPairUserInfo?>(pairs.Select(p => new KeyValuePair<Pair, GroupPairUserInfo?>(p,
-                                GroupFullInfo.GroupPairUserInfos.TryGetValue(new Guid(p.UserData.UID), out GroupPairUserInfo value) ? value : null)));
+                                GroupFullInfo.GroupPairUserInfos.TryGetValue(new Guid(p.UserData.publicUserID), out GroupPairUserInfo value) ? value : null)));
 
                             foreach (var pair in groupedPairs.OrderBy(p =>
                             {
@@ -147,7 +147,7 @@ public class SyncshellAdminUI : WindowMediatorSubscriberBase
                                 return 10;
                             }).ThenBy(p => p.Key.GetNote() ?? p.Key.UserData.AliasOrUID, StringComparer.OrdinalIgnoreCase))
                             {
-                                using var tableId = ImRaii.PushId("userTable_" + pair.Key.UserData.UID);
+                                using var tableId = ImRaii.PushId("userTable_" + pair.Key.UserData.publicUserID);
 
                                 ImGui.TableNextColumn(); // alias/uid/note
                                 var note = pair.Key.GetNote();

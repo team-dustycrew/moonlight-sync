@@ -6,7 +6,7 @@ public sealed record CharaDataMetaInfoExtendedDto : CharaDataMetaInfoDto
 {
     private CharaDataMetaInfoExtendedDto(CharaDataMetaInfoDto baseMeta) : base(baseMeta)
     {
-        FullId = baseMeta.Uploader.UID + ":" + baseMeta.Id;
+        FullId = baseMeta.Uploader.publicUserID + ":" + baseMeta.Id;
     }
 
     public List<PoseEntryExtended> PoseExtended { get; private set; } = [];

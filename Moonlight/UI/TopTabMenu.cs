@@ -183,7 +183,7 @@ public class TopTabMenu
         ImGui.SetNextItemWidth(availableXWidth - buttonSize - spacingX);
         ImGui.InputTextWithHint("##otheruid", "Other players UID/Alias", ref _pairToAdd, 64);
         ImGui.SameLine();
-        var alreadyExisting = _pairManager.DirectPairs.Exists(p => string.Equals(p.UserData.UID.ToString(), _pairToAdd, StringComparison.Ordinal) || string.Equals(p.UserData.Alias, _pairToAdd, StringComparison.Ordinal));
+        var alreadyExisting = _pairManager.DirectPairs.Exists(p => string.Equals(p.UserData.publicUserID.ToString(), _pairToAdd, StringComparison.Ordinal) || string.Equals(p.UserData.Alias, _pairToAdd, StringComparison.Ordinal));
         using (ImRaii.Disabled(alreadyExisting || string.IsNullOrEmpty(_pairToAdd)))
         {
             if (_uiSharedService.IconTextButton(FontAwesomeIcon.UserPlus, "Add"))
@@ -528,7 +528,7 @@ public class TopTabMenu
                 _ = GlobalControlCountdown(10);
                 var bulkIndividualPairs = _pairManager.PairsWithGroups.Keys
                     .Where(g => g.IndividualPairStatus == IndividualPairStatus.Bidirectional)
-                    .ToDictionary(g => !g.UserPair.User.UID.IsNullOrEmpty()? new Guid(g.UserPair.User.UID) : Guid.Empty, g =>
+                    .ToDictionary(g => !g.UserPair.User.publicUserID.IsNullOrEmpty()? new Guid(g.UserPair.User.publicUserID) : Guid.Empty, g =>
                     {
                         return actEnable(g.UserPair.OwnPermissions);
                     });
@@ -542,7 +542,7 @@ public class TopTabMenu
                 _ = GlobalControlCountdown(10);
                 var bulkIndividualPairs = _pairManager.PairsWithGroups.Keys
                     .Where(g => g.IndividualPairStatus == IndividualPairStatus.Bidirectional)
-                    .ToDictionary(g => !g.UserPair.User.UID.IsNullOrEmpty()? new Guid(g.UserPair.User.UID) : Guid.Empty, g =>
+                    .ToDictionary(g => !g.UserPair.User.publicUserID.IsNullOrEmpty()? new Guid(g.UserPair.User.publicUserID) : Guid.Empty, g =>
                     {
                         return actDisable(g.UserPair.OwnPermissions);
                     });

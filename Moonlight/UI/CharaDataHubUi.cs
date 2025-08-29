@@ -330,7 +330,7 @@ internal sealed partial class CharaDataHubUi : WindowMediatorSubscriberBase
 
     private void DrawAddOrRemoveFavorite(CharaDataFullDto dto)
     {
-        DrawFavorite(dto.Uploader.UID + ":" + dto.Id);
+        DrawFavorite(dto.Uploader.publicUserID + ":" + dto.Id);
     }
 
     private void DrawAddOrRemoveFavorite(CharaDataMetaInfoExtendedDto? dto)
@@ -393,7 +393,7 @@ internal sealed partial class CharaDataHubUi : WindowMediatorSubscriberBase
                 using (ImRaii.Disabled(handled == null))
                 {
                     _uiSharedService.IconText(FontAwesomeIcon.InfoCircle);
-                    var id = string.IsNullOrEmpty(handled?.MetaInfo.Uploader.UID.ToString()) ? handled?.MetaInfo.Id : handled.MetaInfo.FullId;
+                    var id = string.IsNullOrEmpty(handled?.MetaInfo.Uploader.publicUserID.ToString()) ? handled?.MetaInfo.Id : handled.MetaInfo.FullId;
                     UiSharedService.AttachToolTip($"Applied Data: {id ?? "No data applied"}");
 
                     ImGui.SameLine();
@@ -757,7 +757,7 @@ internal sealed partial class CharaDataHubUi : WindowMediatorSubscriberBase
                     _filteredDict = _charaDataManager.SharedWithYouData
                         .ToDictionary(k =>
                         {
-                            var note = _serverConfigurationManager.GetNoteForUid(new Guid(k.Key.UID));
+                            var note = _serverConfigurationManager.GetNoteForUid(new Guid(k.Key.publicUserID));
                             if (note == null) return k.Key.AliasOrUID;
                             return $"{note} ({k.Key.AliasOrUID})";
                         }, k => k.Value, StringComparer.OrdinalIgnoreCase)

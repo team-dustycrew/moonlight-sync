@@ -223,7 +223,7 @@ public class CompactUi : WindowMediatorSubscriberBase
                 ImGui.InputTextWithHint("##noteforuser", $"Note for {_lastAddedUser.UserData.AliasOrUID}", ref _lastAddedUserComment, 100);
                 if (_uiSharedService.IconTextButton(FontAwesomeIcon.Save, "Save Note"))
                 {
-                    _serverManager.SetNoteForUid(new Guid(_lastAddedUser.UserData.UID), _lastAddedUserComment);
+                    _serverManager.SetNoteForUid(new Guid(_lastAddedUser.UserData.publicUserID), _lastAddedUserComment);
                     _lastAddedUser = null;
                     _lastAddedUserComment = string.Empty;
                     _showModalForUserAddition = false;
@@ -461,11 +461,11 @@ public class CompactUi : WindowMediatorSubscriberBase
             => u.Key.IsVisible
                 && (_configService.Current.ShowSyncshellUsersInVisible || !(!_configService.Current.ShowSyncshellUsersInVisible && !u.Key.IsDirectlyPaired));
         bool FilterTagusers(KeyValuePair<Pair, List<GroupFullInfoDto>> u, string tag)
-            => u.Key.IsDirectlyPaired && !u.Key.IsOneSidedPair && _tagHandler.HasTag(u.Key.UserData.UID.ToString(), tag);
+            => u.Key.IsDirectlyPaired && !u.Key.IsOneSidedPair && _tagHandler.HasTag(u.Key.UserData.publicUserID.ToString(), tag);
         bool FilterGroupUsers(KeyValuePair<Pair, List<GroupFullInfoDto>> u, GroupFullInfoDto group)
             => u.Value.Exists(g => string.Equals(g.GID.ToString(), group.GID.ToString(), StringComparison.Ordinal));
         bool FilterNotTaggedUsers(KeyValuePair<Pair, List<GroupFullInfoDto>> u)
-            => u.Key.IsDirectlyPaired && !u.Key.IsOneSidedPair && !_tagHandler.HasAnyTag(u.Key.UserData.UID.ToString());
+            => u.Key.IsDirectlyPaired && !u.Key.IsOneSidedPair && !_tagHandler.HasAnyTag(u.Key.UserData.publicUserID.ToString());
         bool FilterOfflineUsers(KeyValuePair<Pair, List<GroupFullInfoDto>> u)
             => ((u.Key.IsDirectlyPaired && _configService.Current.ShowSyncshellOfflineUsersSeparately)
                 || !_configService.Current.ShowSyncshellOfflineUsersSeparately)
@@ -495,8 +495,8 @@ public class CompactUi : WindowMediatorSubscriberBase
                 .OrderByDescending(u => u.Key.IsOnline)
                 .ThenBy(u =>
                 {
-                    if (u.Key.UserData.UID == group.OwnerUID.ToString()) return 0;
-                    if (group.GroupPairUserInfos.TryGetValue(new Guid(u.Key.UserData.UID), out var info))
+                    if (u.Key.UserData.publicUserID == group.OwnerUID.ToString()) return 0;
+                    if (group.GroupPairUserInfos.TryGetValue(new Guid(u.Key.UserData.publicUserID), out var info))
                     {
                         if (info.IsModerator()) return 1;
                         if (info.IsPinned()) return 2;

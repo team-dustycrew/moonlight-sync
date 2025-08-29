@@ -601,7 +601,7 @@ public class CharaDataGposeTogetherManager : DisposableMediatorSubscriberBase
 
     private void OnReceiveCharaData(CharaDataDownloadDto charaDataDownloadDto)
     {
-        if (!_usersInLobby.TryGetValue(charaDataDownloadDto.Uploader.UID.ToString(), out var lobbyData))
+        if (!_usersInLobby.TryGetValue(charaDataDownloadDto.Uploader.publicUserID.ToString(), out var lobbyData))
         {
             return;
         }
@@ -660,7 +660,7 @@ public class CharaDataGposeTogetherManager : DisposableMediatorSubscriberBase
 
     private void OnReceivePoseData(UserData userData, PoseData poseData)
     {
-        if (!_usersInLobby.TryGetValue(userData.UID.ToString(), out var lobbyData))
+        if (!_usersInLobby.TryGetValue(userData.publicUserID.ToString(), out var lobbyData))
         {
             return;
         }
@@ -673,21 +673,21 @@ public class CharaDataGposeTogetherManager : DisposableMediatorSubscriberBase
 
     private void OnReceiveWorldData(UserData userData, WorldData worldData)
     {
-        _usersInLobby[userData.UID.ToString()].WorldData = worldData;
-        _ = _usersInLobby[userData.UID.ToString()].SetWorldDataDescriptor(_dalamudUtil);
+        _usersInLobby[userData.publicUserID.ToString()].WorldData = worldData;
+        _ = _usersInLobby[userData.publicUserID.ToString()].SetWorldDataDescriptor(_dalamudUtil);
     }
 
     private void OnUserJoinLobby(UserData userData)
     {
-        if (_usersInLobby.ContainsKey(userData.UID.ToString()))
+        if (_usersInLobby.ContainsKey(userData.publicUserID.ToString()))
             OnUserLeaveLobby(userData);
-        _usersInLobby[userData.UID.ToString()] = new(userData);
+        _usersInLobby[userData.publicUserID.ToString()] = new(userData);
         _ = PushCharacterDownloadDto();
     }
 
     private void OnUserLeaveLobby(UserData msg)
     {
-        _usersInLobby.Remove(msg.UID.ToString(), out var existingData);
+        _usersInLobby.Remove(msg.publicUserID.ToString(), out var existingData);
         if (existingData != default)
         {
             _ = _dalamudUtil.RunOnFrameworkThread(() => _vfxSpawnManager.DespawnObject(existingData.SpawnedVfxId));

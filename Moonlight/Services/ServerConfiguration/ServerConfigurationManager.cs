@@ -137,11 +137,35 @@ public class ServerConfigurationManager
         return null;
     }
 
-    public string? GetMNetKey()
+    public string? GetMNetKey(int serverIdx = -1)
     {
         if (_mNetConfigService.Current.ApiKey.IsNullOrEmpty())
         {
             return "";
+        }
+        
+        ServerStorage? currentServer;
+        currentServer = serverIdx == -1 ? CurrentServer : GetServerByIndex(serverIdx);
+        if (currentServer == null)
+        {
+            currentServer = new();
+            Save();
+        }
+
+        var charaName = _dalamudUtil.GetPlayerNameAsync().GetAwaiter().GetResult();
+        var worldId = _dalamudUtil.GetHomeWorldIdAsync().GetAwaiter().GetResult();
+        var cid = _dalamudUtil.GetCIDAsync().GetAwaiter().GetResult();
+        if (!currentServer.Authentications.Any() && currentServer.SecretKeys.Any())
+        {
+            currentServer.Authentications.Add(new Authentication()
+            {
+                CharacterName = charaName,
+                WorldId = worldId,
+                LastSeenCID = cid,
+                SecretKeyIdx = currentServer.SecretKeys.Last().Key,
+            });
+
+            Save();
         }
         
         return _mNetConfigService.Current.ApiKey;

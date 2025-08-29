@@ -89,7 +89,7 @@ public class IdDisplayHandler
     {
         ImGui.SameLine(textPosX);
         (bool textIsUid, string playerText) = GetPlayerText(pair);
-        if (!string.Equals(_editEntry, pair.UserData.UID.ToString(), StringComparison.Ordinal))
+        if (!string.Equals(_editEntry, pair.UserData.publicUserID.ToString(), StringComparison.Ordinal))
         {
             ImGui.AlignTextToFramePadding();
 
@@ -129,11 +129,11 @@ public class IdDisplayHandler
             if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
             {
                 var prevState = textIsUid;
-                if (_showIdForEntry.ContainsKey(pair.UserData.UID.ToString()))
+                if (_showIdForEntry.ContainsKey(pair.UserData.publicUserID.ToString()))
                 {
-                    prevState = _showIdForEntry[pair.UserData.UID.ToString()];
+                    prevState = _showIdForEntry[pair.UserData.publicUserID.ToString()];
                 }
-                _showIdForEntry[pair.UserData.UID.ToString()] = !prevState;
+                _showIdForEntry[pair.UserData.publicUserID.ToString()] = !prevState;
             }
 
             if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
@@ -148,7 +148,7 @@ public class IdDisplayHandler
                 }
 
                 _editComment = pair.GetNote() ?? string.Empty;
-                _editEntry = pair.UserData.UID.ToString();
+                _editEntry = pair.UserData.publicUserID.ToString();
                 _editIsUid = true;
             }
 
@@ -162,9 +162,9 @@ public class IdDisplayHandler
             ImGui.AlignTextToFramePadding();
 
             ImGui.SetNextItemWidth(editBoxWidth.Invoke());
-            if (ImGui.InputTextWithHint("##" + pair.UserData.UID, "Nick/Notes", ref _editComment, 255, ImGuiInputTextFlags.EnterReturnsTrue))
+            if (ImGui.InputTextWithHint("##" + pair.UserData.publicUserID, "Nick/Notes", ref _editComment, 255, ImGuiInputTextFlags.EnterReturnsTrue))
             {
-                _serverManager.SetNoteForUid(new Guid(pair.UserData.UID), _editComment);
+                _serverManager.SetNoteForUid(new Guid(pair.UserData.publicUserID), _editComment);
                 _serverManager.SaveNotes();
                 _editEntry = string.Empty;
             }
@@ -205,7 +205,7 @@ public class IdDisplayHandler
     {
         var textIsUid = true;
         bool showUidInsteadOfName = ShowUidInsteadOfName(pair);
-        string? playerText = _serverManager.GetNoteForUid(new Guid(pair.UserData.UID));
+        string? playerText = _serverManager.GetNoteForUid(new Guid(pair.UserData.publicUserID));
         if (!showUidInsteadOfName && playerText != null)
         {
             if (string.IsNullOrEmpty(playerText))
@@ -259,7 +259,7 @@ public class IdDisplayHandler
 
     private bool ShowUidInsteadOfName(Pair pair)
     {
-        _showIdForEntry.TryGetValue(pair.UserData.UID.ToString(), out var showidInsteadOfName);
+        _showIdForEntry.TryGetValue(pair.UserData.publicUserID.ToString(), out var showidInsteadOfName);
 
         return showidInsteadOfName;
     }

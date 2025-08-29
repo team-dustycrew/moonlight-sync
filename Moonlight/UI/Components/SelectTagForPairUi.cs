@@ -67,7 +67,7 @@ public class SelectTagForPairUi
             {
                 foreach (var tag in tags)
                 {
-                    using (ImRaii.PushId($"groups-pair-{_pair.UserData.UID}-{tag}")) DrawGroupName(_pair, tag);
+                    using (ImRaii.PushId($"groups-pair-{_pair.UserData.publicUserID}-{tag}")) DrawGroupName(_pair, tag);
                 }
                 ImGui.EndChild();
             }
@@ -100,17 +100,17 @@ public class SelectTagForPairUi
 
     private void DrawGroupName(Pair pair, string name)
     {
-        var hasTagBefore = _tagHandler.HasTag(pair.UserData.UID.ToString(), name);
+        var hasTagBefore = _tagHandler.HasTag(pair.UserData.publicUserID.ToString(), name);
         var hasTag = hasTagBefore;
         if (ImGui.Checkbox(name, ref hasTag))
         {
             if (hasTag)
             {
-                _tagHandler.AddTagToPairedUid(pair.UserData.UID.ToString(), name);
+                _tagHandler.AddTagToPairedUid(pair.UserData.publicUserID.ToString(), name);
             }
             else
             {
-                _tagHandler.RemoveTagFromPairedUid(pair.UserData.UID.ToString(), name);
+                _tagHandler.RemoveTagFromPairedUid(pair.UserData.publicUserID.ToString(), name);
             }
         }
     }
@@ -122,7 +122,7 @@ public class SelectTagForPairUi
             _tagHandler.AddTag(_tagNameToAdd);
             if (_pair != null)
             {
-                _tagHandler.AddTagToPairedUid(_pair.UserData.UID.ToString(), _tagNameToAdd);
+                _tagHandler.AddTagToPairedUid(_pair.UserData.publicUserID.ToString(), _tagNameToAdd);
             }
             _tagNameToAdd = string.Empty;
         }

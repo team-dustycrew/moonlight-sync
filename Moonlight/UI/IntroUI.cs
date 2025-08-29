@@ -265,6 +265,8 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                                 _mnetUserCode = string.Empty;
                                 _mnetVerificationUri = string.Empty;
                                 _mnetDeviceCode = string.Empty;
+                                
+                                SubmitMNetKeyToServer(key);
                                 _ = Task.Run((Func<Task>)(() => _uiShared.ApiController.CreateConnectionsAsync()));
                             }
                         }
@@ -297,6 +299,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                         if (!string.IsNullOrEmpty(_mNetKey))
                         {
                             await _mnetPairing.SaveKeyAndConfirmAsync(_mNetKey!, _mnetPairingCts.Token).ConfigureAwait(false);
+                            SubmitMNetKeyToServer(_mNetKey);
                             _ = Task.Run((Func<Task>)(() => _uiShared.ApiController.CreateConnectionsAsync()));
                         }
                     }
@@ -450,6 +453,30 @@ public partial class IntroUi : WindowMediatorSubscriberBase
         if (Hex64Regex().IsMatch(key)) return true;
         if (BaseUrlKeyRegex().IsMatch(key)) return true;
         return false;
+    }
+
+    private void SubmitMNetKeyToServer(string key)
+    {
+        if (_serverConfigurationManager.CurrentServer == null) _serverConfigurationManager.SelectServer(0);
+        if (!_serverConfigurationManager.CurrentServer!.SecretKeys.Any())
+        {
+            _serverConfigurationManager.CurrentServer!.SecretKeys.Add(_serverConfigurationManager.CurrentServer.SecretKeys.Select(k => k.Key).LastOrDefault() + 1, new SecretKey()
+            {
+                FriendlyName = $"MNet Key added on Setup ({DateTime.Now:yyyy-MM-dd})",
+                Key = key,
+            });
+            _serverConfigurationManager.AddCurrentCharacterToServer();
+        }
+        else
+        {
+            _serverConfigurationManager.CurrentServer!.SecretKeys[0] = new SecretKey()
+            {
+                FriendlyName = $"MNet Key added on Setup ({DateTime.Now:yyyy-MM-dd})",
+                Key = key,
+            };
+        }
+        _secretKey = string.Empty;
+        _ = Task.Run((Func<Task>)(() => _uiShared.ApiController.CreateConnectionsAsync()));
     }
 
     [GeneratedRegex("^[A-Fa-f0-9]{64}$")]
