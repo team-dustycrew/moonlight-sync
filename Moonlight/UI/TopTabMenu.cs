@@ -465,7 +465,7 @@ public class TopTabMenu
         var buttonX = (availableWidth - (spacingX)) / 2f;
 
         using (ImRaii.Disabled(_pairManager.GroupPairs.Select(k => k.Key).Distinct()
-            .Count(g => string.Equals(g.OwnerUID.ToString(), _apiController.UID.ToString(), StringComparison.Ordinal)) >= _apiController.ServerInfo.MaxGroupsCreatedByUser))
+            .Count(g => string.Equals(g.OwnerUID.ToString(), _apiController.PublicUserID, StringComparison.Ordinal)) >= _apiController.ServerInfo.MaxGroupsCreatedByUser))
         {
             if (_uiSharedService.IconTextButton(FontAwesomeIcon.Plus, "Create new Syncshell", buttonX))
             {

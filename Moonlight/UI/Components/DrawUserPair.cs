@@ -308,7 +308,7 @@ public class DrawUserPair
         if (_syncedGroups.Any()) ImGui.Separator();
         foreach (var entry in _syncedGroups)
         {
-            bool selfIsOwner = string.Equals(_apiController.UID.ToString(), entry.Owner.publicUserID.ToString(), StringComparison.Ordinal);
+            bool selfIsOwner = string.Equals(_apiController.PublicUserID, entry.Owner.publicUserID.ToString(), StringComparison.Ordinal);
             bool selfIsModerator = entry.GroupUserInfo.IsModerator();
             bool userIsModerator = entry.GroupPairUserInfos.TryGetValue(new Guid(_pair.UserData.publicUserID), out var modinfo) && modinfo.IsModerator();
             bool userIsPinned = entry.GroupPairUserInfos.TryGetValue(new Guid(_pair.UserData.publicUserID), out var info) && info.IsPinned();

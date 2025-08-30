@@ -409,14 +409,14 @@ public class CompactUi : WindowMediatorSubscriberBase
             }
             UiSharedService.AttachToolTip("Click to copy");
 
-            if (!string.Equals(_apiController.DisplayName, _apiController.UID.ToString(), StringComparison.Ordinal))
+            if (!string.Equals(_apiController.DisplayName, _apiController.PublicUserID, StringComparison.Ordinal))
             {
-                var origTextSize = ImGui.CalcTextSize(_apiController.UID.ToString());
+                var origTextSize = ImGui.CalcTextSize(_apiController.PublicUserID);
                 ImGui.SetCursorPosX((ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X) / 2 - (origTextSize.X / 2));
-                ImGui.TextColored(GetUidColor(), _apiController.UID.ToString());
+                ImGui.TextColored(GetUidColor(), _apiController.PublicUserID);
                 if (ImGui.IsItemClicked())
                 {
-                    ImGui.SetClipboardText(_apiController.UID.ToString());
+                    ImGui.SetClipboardText(_apiController.PublicUserID);
                 }
                 UiSharedService.AttachToolTip("Click to copy");
             }

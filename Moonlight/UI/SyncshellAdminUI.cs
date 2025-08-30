@@ -40,7 +40,7 @@ public class SyncshellAdminUI : WindowMediatorSubscriberBase
         _apiController = apiController;
         _uiSharedService = uiSharedService;
         _pairManager = pairManager;
-        _isOwner = string.Equals(GroupFullInfo.OwnerUID.ToString(), _apiController.UID.ToString(), StringComparison.Ordinal);
+        _isOwner = string.Equals(GroupFullInfo.OwnerUID.ToString(), _apiController.PublicUserID, StringComparison.Ordinal);
         _isModerator = GroupFullInfo.GroupUserInfo.IsModerator();
         _newPassword = string.Empty;
         _multiInvites = 30;

@@ -29,7 +29,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
     /// The name of the main Moonlight server
     /// </summary>
     public const string MainServer = "Moonlight Server 1";
-    
+
     /// <summary>
     /// The WebSocket URI for the main Moonlight service
     /// </summary>
@@ -43,73 +43,73 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
     /// Service for interacting with Dalamud and FFXIV game data
     /// </summary>
     private readonly DalamudUtilService _dalamudUtil;
-    
+
     /// <summary>
     /// Factory for creating and managing SignalR hub connections
     /// </summary>
     private readonly HubFactory _hubFactory;
-    
+
     /// <summary>
     /// Manager for handling user pairs and groups
     /// </summary>
     private readonly PairManager _pairManager;
-    
+
     /// <summary>
     /// Manager for server configuration settings
     /// </summary>
     private readonly ServerConfigurationManager _serverManager;
-    
+
     /// <summary>
     /// Provider for managing JWT authentication tokens
     /// </summary>
     private readonly TokenProvider _tokenProvider;
-    
+
     /// <summary>
     /// Service for managing Moonlight-specific configuration
     /// </summary>
     private readonly MoonlightConfigService _moonlightConfigService;
-    
+
     // Connection state management
     /// <summary>
     /// Cancellation token source for managing connection lifecycle
     /// </summary>
     private CancellationTokenSource _connectionCancellationTokenSource;
-    
+
     /// <summary>
     /// Data transfer object containing connection information from the server
     /// </summary>
     private ConnectionDto? _connectionDto;
-    
+
     /// <summary>
     /// Flag to suppress notifications on the next info update
     /// </summary>
     private bool _doNotNotifyOnNextInfo = false;
-    
+
     /// <summary>
     /// Cancellation token source for health check operations
     /// </summary>
     private CancellationTokenSource? _healthCheckTokenSource = new();
-    
+
     /// <summary>
     /// Flag indicating whether the API hooks have been initialized
     /// </summary>
     private bool _initialized;
-    
+
     /// <summary>
     /// The last authentication token used for the connection
     /// </summary>
     private string? _lastUsedToken;
-    
+
     /// <summary>
     /// The SignalR hub connection to the Moonlight server
     /// </summary>
     private HubConnection? _moonlightHub;
-    
+
     /// <summary>
     /// Current state of the server connection
     /// </summary>
     private ServerState _serverState;
-    
+
     /// <summary>
     /// The last received census update message containing character data
     /// </summary>
@@ -163,7 +163,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
     /// Gets the default permissions from the server, or null if not connected
     /// </summary>
     public DefaultPermissionsDto? DefaultPermissions => _connectionDto?.DefaultPreferredPermissions ?? null;
-    
+
     /// <summary>
     /// Gets the display name for the current user (alias or UID)
     /// </summary>
@@ -213,19 +213,11 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
     public SystemInfoDto SystemInfoDto { get; private set; } = new();
 
     /// <summary>
-    /// Gets the unique identifier for the current user, or empty GUID if not connected
+    /// Gets the unique identifier for the current user, or empty string if not connected
     /// </summary>
-    public Guid UID
+    public string? PublicUserID
     {
-        get
-        {
-            if (_connectionDto?.User.publicUserID != null)
-            {
-                return new Guid(_connectionDto?.User.publicUserID);
-            }
-            
-            return Guid.Empty;
-        }
+        get => _connectionDto?.User.publicUserID ?? string.Empty;
     }
 
     /// <summary>
@@ -276,7 +268,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
         _connectionCancellationTokenSource?.Dispose();
         _connectionCancellationTokenSource = new CancellationTokenSource();
         var token = _connectionCancellationTokenSource.Token;
-        
+
         // Connection retry loop
         while (ServerState is not ServerState.Connected && token.IsCancellationRequested == false)
         {
@@ -431,18 +423,18 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
             // Find the pair for this user
             var pair = _pairManager.GetOnlineUserPairs().Single(p => p.UserPair != null && p.UserData == userData);
             var perm = pair.UserPair!.OwnPermissions;
-            
+
             // Set to paused
             perm.SetPaused(paused: true);
             await UserSetPairPermissions(new UserPermissionsDto(userData, perm)).ConfigureAwait(false);
-            
+
             // Wait until the change is applied
             while (pair.UserPair!.OwnPermissions != perm)
             {
                 await Task.Delay(250, cts.Token).ConfigureAwait(false);
                 Logger.LogTrace("Waiting for permissions change for {data}", userData);
             }
-            
+
             // Set to unpaused
             perm.SetPaused(paused: false);
             await UserSetPairPermissions(new UserPermissionsDto(userData, perm)).ConfigureAwait(false);
@@ -522,7 +514,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
         var charaName = _dalamudUtil.GetPlayerNameAsync().GetAwaiter().GetResult();
         var worldId = _dalamudUtil.GetHomeWorldIdAsync().GetAwaiter().GetResult();
         var auth = _serverManager.CurrentServer.Authentications.Find(f => string.Equals(f.CharacterName, charaName, StringComparison.Ordinal) && f.WorldId == worldId);
-        
+
         if (auth?.AutoLogin ?? false)
         {
             Logger.LogInformation("Logging into {chara}", charaName);
@@ -552,7 +544,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
         if (_moonlightHub == null) return;
 
         Logger.LogDebug("Initializing data");
-        
+
         // Set up event handlers for various server messages
         OnDownloadReady((guid) => _ = Client_DownloadReady(guid));
         OnReceiveServerMessage((sev, msg) => _ = Client_ReceiveServerMessage(sev, msg));
@@ -623,7 +615,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
     private async Task LoadOnlinePairsAsync()
     {
         CensusDataDto? dto = null;
-        
+
         // Include census data if enabled and available
         if (_serverManager.SendCensusData && _lastCensus != null)
         {
@@ -649,7 +641,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
         _healthCheckTokenSource?.Cancel();
         Mediator.Publish(new DisconnectedMessage());
         ServerState = ServerState.Offline;
-        
+
         if (arg != null)
         {
             Logger.LogWarning(arg, "Connection closed");
@@ -671,16 +663,16 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
             // Re-initialize hooks and get connection data
             InitializeApiHooks();
             _connectionDto = await GetConnectionDtoAsync(publishConnected: false).ConfigureAwait(false);
-            
+
             // Check version compatibility
             if (_connectionDto.ServerVersion != IMoonLightHub.ApiVersion)
             {
                 await StopConnectionAsync(ServerState.VersionMisMatch).ConfigureAwait(false);
                 return;
             }
-            
+
             ServerState = ServerState.Connected;
-            
+
             // Reload all data
             await LoadIninitialPairsAsync().ConfigureAwait(false);
             await LoadOnlinePairsAsync().ConfigureAwait(false);
@@ -718,7 +710,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
         try
         {
             var token = await _tokenProvider.GetOrUpdateToken(ct).ConfigureAwait(false);
-            
+
             // Reconnect if token has changed
             if (!string.Equals(token, _lastUsedToken, StringComparison.Ordinal))
             {
