@@ -14,8 +14,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: recursive
+          submodules: false
           lfs: true
+
+      - name: Checkout MoonLight-API dependency
+        uses: actions/checkout@v4
+        with:
+          repository: team-dustycrew/MoonLight-API
+          path: MoonLight-API
+          fetch-depth: 1
+          token: ${{ secrets.API_READ_TOKEN }}
 
       - name: Prepare Dalamud dev libraries
         shell: pwsh
@@ -35,11 +43,11 @@ jobs:
           cache-dependency-path: |
             **/packages.lock.json
 
-      - name: Restore
-        run: dotnet restore Moonlight.sln
+      - name: Restore (skip submodules)
+        run: dotnet restore Moonlight/Moonlight.csproj
 
       - name: Build (Release, x64)
-        run: dotnet build Moonlight.sln -c Release -p:Platform=x64 --no-restore
+        run: dotnet build Moonlight/Moonlight.csproj -c Release -p:Platform=x64 --no-restore
 
       - name: Detect packaged zips
         id: artifacts
@@ -84,7 +92,7 @@ jobs:
           $tag = "v$env:VERSION"
           $releaseUrl = "https://github.com/$repo/releases/tag/$tag"
           if ($env:VERSION -match '-') { $kind = 'Pre-release' } else { $kind = 'Release' }
-          $content = "**$kind** Moonlight $tag is live.\n$releaseUrl"
+          $content = "**$kind** Moonlight $tag is live.`n$releaseUrl"
           $payload = @{ content = $content; allowed_mentions = @{ parse = @() } } | ConvertTo-Json -Depth 4
           Invoke-RestMethod -Uri $env:DISCORD_WEBHOOK_URL -Method POST -ContentType 'application/json' -Body $payload
 
@@ -101,6 +109,6 @@ jobs:
           $short = if ($sha.Length -ge 7) { $sha.Substring(0,7) } else { $sha }
           $runUrl = "https://github.com/$repo/actions/runs/${{ github.run_id }}"
           $branchUrl = "https://github.com/$repo/tree/$branch"
-          $content = "**Build failed** on branch $branch ($short).\nSee run:\n$runUrl\nBranch:\n$branchUrl"
+          $content = "**Build failed** on branch $branch ($short).`nSee run:`n$runUrl`nBranch:`n$branchUrl"
           $payload = @{ content = $content; allowed_mentions = @{ parse = @() } } | ConvertTo-Json -Depth 4
           Invoke-RestMethod -Uri $env:DISCORD_WEBHOOK_URL -Method POST -ContentType 'application/json' -Body $payload
