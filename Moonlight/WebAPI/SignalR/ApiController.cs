@@ -1,10 +1,15 @@
-﻿using Dalamud.Utility;
-using MoonLight.API.Data.Extensions;
+﻿using System.Reflection;
+
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
-using MoonLight.API.Data;
+
+using Dalamud.Utility;
+
 using MoonLight.API.Dto;
 using MoonLight.API.Dto.User;
+using MoonLight.API.Data;
+using MoonLight.API.Data.Extensions;
 using MoonLight.API.SignalR;
 using Moonlight.MoonlightConfiguration;
 using Moonlight.MoonlightConfiguration.Models;
@@ -14,7 +19,7 @@ using Moonlight.Services.Mediator;
 using Moonlight.Services.ServerConfiguration;
 using Moonlight.WebAPI.SignalR;
 using Moonlight.WebAPI.SignalR.Utils;
-using System.Reflection;
+
 
 namespace Moonlight.WebAPI;
 
