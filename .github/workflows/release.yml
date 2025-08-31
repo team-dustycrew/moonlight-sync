@@ -20,6 +20,8 @@ jobs:
         with:
           dotnet-version: '9.0.x'
           cache: true
+          cache-dependency-path: |
+            **/packages.lock.json
 
       - name: Restore
         run: dotnet restore Moonlight/Moonlight.csproj
@@ -57,3 +59,19 @@ jobs:
           prerelease: ${{ contains(steps.version.outputs.version, '-') }}
           generate_release_notes: true
           files: ${{ steps.artifacts.outputs.files }}
+
+      - name: Notify Discord (webhook)
+        if: success()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: pwsh
+        run: |
+          if (-not $env:DISCORD_WEBHOOK_URL) { Write-Host 'No DISCORD_WEBHOOK_URL secret set; skipping.'; exit 0 }
+          $repo = "${{ github.repository }}"
+          $tag = "v$env:VERSION"
+          $releaseUrl = "https://github.com/$repo/releases/tag/$tag"
+          if ($env:VERSION -match '-') { $kind = 'Pre-release' } else { $kind = 'Release' }
+          $content = "**$kind** Moonlight $tag is live.\n$releaseUrl"
+          $payload = @{ content = $content; allowed_mentions = @{ parse = @() } } | ConvertTo-Json -Depth 4
+          Invoke-RestMethod -Uri $env:DISCORD_WEBHOOK_URL -Method POST -ContentType 'application/json' -Body $payload
