@@ -1,0 +1,158 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Lumina.Excel</name>
+    </assembly>
+    <members>
+        <member name="P:Lumina.Excel.Sheets.Action.AutoAttackBehaviour">
+            <summary>0 = no effect on auto attacks, 1 = typical cast (unsheathe weapon, but don't touch autos), 2 = typical weaponskill (unsheathe, start autos if action target is primary target), 3 = sleep-like effect (unsheathe, stop autos), 4 = typical point-blank aoe (unsheathe, start autos if primary target is within action range), 5 = ??? (doesn't touch weapon state), 6 = typical channeled action (unsheathe, stop autos, do not auto-face target), 7 = force sheathe and stop autos, 8 = ??? (unused)</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Action.EquivalenceGroup">
+            <summary>set for eg crafting actions, when different jobs have different rows, but they need to be considered interchangeable</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Action.DeadTargetBehaviour">
+            <summary>0 = can not target dead, 1 = can only target dead players (+ some other conditions), 2 = ???</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.ClassJobActionUI.ComboTreeLayout">
+            <summary>Used to position the action within a combo tree diagram. Non-zero digits identify branches within the combo (eg, Hakaze -&gt; Shifu -&gt; Kasha is 100 -&gt; 120 -&gt; 121)</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.ClassJobActionUI.GroupedCell">
+            <summary>Currently only used for MNK actions; displays a set of actions in a shared rectangular cell instead of a tree.</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Condition.LogMessagePriority">
+            <summary>The lower this number is, the higher the priority. Used to determine which conditions LogMessage should be printed.</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Condition.IsNetworked">
+            <summary>Allows this Condition to be set by a packet received from the server.</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.ExVersion.MenuScreen">
+            <summary>Equivalent to the last quest in column 6 of ScenarioTree</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.IndividualWeather.IndividualWeatherDataStruct.Unknown0">
+            <summary>quest progress maybe</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.MKDData.Unknown8">
+            <summary>Minimum Knowledge Level?</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Quest.DailyQuestPool">
+            <summary>1/2 - normal daily beast tribe quests, 3 - 'exclusive' (if player's rank is not greater than max rank requirement of quests offered by npc, exactly one of the available quests will be from this pool)</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Role.Type">
+            <summary>1 = Tank, 2 = DPS, 3 = Healer</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.SatisfactionSupplyReward.MinLevelForSecondReward">
+            <summary>0 == current cap</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.SpecialShop.RequiredContentFinderConditionComplete">
+            <summary>If this is true, then the CFC needs to be completed; If this is false, then the CFC just needs to be unlocked</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Status.Flags">
+            <summary>actually an index of the flag</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.TerritoryIntendedUse.GayaSoundId">
+            <summary>Ambient noise of people talking in a crowd. Values: 0 = None, 1 = sound/strm/GAYA_LestArea_01.scd, 2 = sound/strm/GAYA_Village_01.scd</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.TerritoryIntendedUse.EnableCompanion">
+            <summary>Enables summoning Chocobo Companion</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.TerritoryIntendedUse.EnablePets">
+            <summary>Enables summoning Summoner/Scholar pets</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.TerritoryIntendedUse.Unknown21">
+            <summary>Related to Map in Island Sanctuary, Cosmic Exploration</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.TerritoryIntendedUse.Unknown31">
+            <summary>Related to Idle Cam filtering EventNpcs/EventObjs??</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.TerritoryIntendedUse.Unknown41">
+            <summary>Related to blocking Say/Yell/Shout in Eureka/Bozja/Unknown61??</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.TradeScreenImage.BannerType">
+            <summary>1 = Icon 180096 ("Excellent Trade!"), 2 = Icon 180097 ("Feat Accomplished!")</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.VVDData.Series">
+            <summary>RowId of VVDRouteData and VVDNotebookSeries</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.WeeklyBingoMultipleOrder.Content">
+            <summary>I *think* this is correct? You're welcome MidoriKami :3</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.ZoneSharedGroup.RequirementType">
+            <summary>1 = Quest 2 = Quest with specific Sequence 3 = AetherCurrent 4 = EurekaStoryProgress 5 = DomaStoryProgress </summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.Action.AutoAttackBehaviour">
+            <summary>0 = no effect on auto attacks, 1 = typical cast (unsheathe weapon, but don't touch autos), 2 = typical weaponskill (unsheathe, start autos if action target is primary target), 3 = sleep-like effect (unsheathe, stop autos), 4 = typical point-blank aoe (unsheathe, start autos if primary target is within action range), 5 = ??? (doesn't touch weapon state), 6 = typical channeled action (unsheathe, stop autos, do not auto-face target), 7 = force sheathe and stop autos, 8 = ??? (unused)</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.Action.EquivalenceGroup">
+            <summary>set for eg crafting actions, when different jobs have different rows, but they need to be considered interchangeable</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.Action.DeadTargetBehaviour">
+            <summary>0 = can not target dead, 1 = can only target dead players (+ some other conditions), 2 = ???</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.ClassJobActionUI.ComboTreeLayout">
+            <summary>Used to position the action within a combo tree diagram. Non-zero digits identify branches within the combo (eg, Hakaze -&gt; Shifu -&gt; Kasha is 100 -&gt; 120 -&gt; 121)</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.ClassJobActionUI.GroupedCell">
+            <summary>Currently only used for MNK actions; displays a set of actions in a shared rectangular cell instead of a tree.</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.Condition.LogMessagePriority">
+            <summary>The lower this number is, the higher the priority. Used to determine which conditions LogMessage should be printed.</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.Condition.IsNetworked">
+            <summary>Allows this Condition to be set by a packet received from the server.</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.ExVersion.MenuScreen">
+            <summary>Equivalent to the last quest in column 6 of ScenarioTree</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.IndividualWeather.IndividualWeatherDataStruct.Unknown0">
+            <summary>quest progress maybe</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.MKDData.Unknown8">
+            <summary>Minimum Knowledge Level?</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.Quest.DailyQuestPool">
+            <summary>1/2 - normal daily beast tribe quests, 3 - 'exclusive' (if player's rank is not greater than max rank requirement of quests offered by npc, exactly one of the available quests will be from this pool)</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.Role.Type">
+            <summary>1 = Tank, 2 = DPS, 3 = Healer</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.SatisfactionSupplyReward.MinLevelForSecondReward">
+            <summary>0 == current cap</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.SpecialShop.RequiredContentFinderConditionComplete">
+            <summary>If this is true, then the CFC needs to be completed; If this is false, then the CFC just needs to be unlocked</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.Status.Flags">
+            <summary>actually an index of the flag</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.TerritoryIntendedUse.GayaSoundId">
+            <summary>Ambient noise of people talking in a crowd. Values: 0 = None, 1 = sound/strm/GAYA_LestArea_01.scd, 2 = sound/strm/GAYA_Village_01.scd</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.TerritoryIntendedUse.EnableCompanion">
+            <summary>Enables summoning Chocobo Companion</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.TerritoryIntendedUse.EnablePets">
+            <summary>Enables summoning Summoner/Scholar pets</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.TerritoryIntendedUse.Unknown21">
+            <summary>Related to Map in Island Sanctuary, Cosmic Exploration</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.TerritoryIntendedUse.Unknown31">
+            <summary>Related to Idle Cam filtering EventNpcs/EventObjs??</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.TerritoryIntendedUse.Unknown41">
+            <summary>Related to blocking Say/Yell/Shout in Eureka/Bozja/Unknown61??</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.TradeScreenImage.BannerType">
+            <summary>1 = Icon 180096 ("Excellent Trade!"), 2 = Icon 180097 ("Feat Accomplished!")</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.VVDData.Series">
+            <summary>RowId of VVDRouteData and VVDNotebookSeries</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.WeeklyBingoMultipleOrder.Content">
+            <summary>I *think* this is correct? You're welcome MidoriKami :3</summary>
+        </member>
+        <member name="P:Lumina.Excel.Sheets.Experimental.ZoneSharedGroup.RequirementType">
+            <summary>1 = Quest 2 = Quest with specific Sequence 3 = AetherCurrent 4 = EurekaStoryProgress 5 = DomaStoryProgress </summary>
+        </member>
+    </members>
+</doc>

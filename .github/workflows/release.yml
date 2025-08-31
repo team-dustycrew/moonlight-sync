@@ -15,6 +15,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Prepare Dalamud dev libraries
+        shell: pwsh
+        run: |
+          $dev = Join-Path $env:APPDATA 'XIVLauncher/addon/Hooks/dev'
+          New-Item -ItemType Directory -Path $dev -Force | Out-Null
+          $zip = Join-Path $env:RUNNER_TEMP 'dalamud.zip'
+          Invoke-WebRequest -Uri 'https://goatcorp.github.io/dalamud-distrib/latest.zip' -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath $dev -Force
+          echo "DALAMUD_HOME=$dev" >> $env:GITHUB_ENV
+
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
@@ -73,5 +83,21 @@ jobs:
           $releaseUrl = "https://github.com/$repo/releases/tag/$tag"
           if ($env:VERSION -match '-') { $kind = 'Pre-release' } else { $kind = 'Release' }
           $content = "**$kind** Moonlight $tag is live.\n$releaseUrl"
+          $payload = @{ content = $content; allowed_mentions = @{ parse = @() } } | ConvertTo-Json -Depth 4
+          Invoke-RestMethod -Uri $env:DISCORD_WEBHOOK_URL -Method POST -ContentType 'application/json' -Body $payload
+
+      - name: Notify Discord (failure)
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        shell: pwsh
+        run: |
+          if (-not $env:DISCORD_WEBHOOK_URL) { Write-Host 'No DISCORD_WEBHOOK_URL secret set; skipping.'; exit 0 }
+          $repo = "${{ github.repository }}"
+          $branch = "${{ github.ref_name }}"
+          $sha = "${{ github.sha }}"
+          $short = if ($sha.Length -ge 7) { $sha.Substring(0,7) } else { $sha }
+          $runUrl = "https://github.com/$repo/actions/runs/${{ github.run_id }}"
+          $content = "**Build failed** on `$branch` ($short). See run:`n$runUrl"
           $payload = @{ content = $content; allowed_mentions = @{ parse = @() } } | ConvertTo-Json -Depth 4
           Invoke-RestMethod -Uri $env:DISCORD_WEBHOOK_URL -Method POST -ContentType 'application/json' -Body $payload
