@@ -104,11 +104,7 @@ jobs:
         run: |
           if (-not $env:DISCORD_WEBHOOK_URL) { Write-Host 'No DISCORD_WEBHOOK_URL secret set; skipping.'; exit 0 }
           $repo = "${{ github.repository }}"
-          $branch = "${{ github.ref_name }}"
-          $sha = "${{ github.sha }}"
-          $short = if ($sha.Length -ge 7) { $sha.Substring(0,7) } else { $sha }
           $runUrl = "https://github.com/$repo/actions/runs/${{ github.run_id }}"
-          $branchUrl = "https://github.com/$repo/tree/$branch"
-          $content = "**Build failed** on branch $branch ($short).`nSee run:`n$runUrl`nBranch:`n$branchUrl"
+          $content = "Build failed (<$runUrl>)"
           $payload = @{ content = $content; allowed_mentions = @{ parse = @() } } | ConvertTo-Json -Depth 4
           Invoke-RestMethod -Uri $env:DISCORD_WEBHOOK_URL -Method POST -ContentType 'application/json' -Body $payload
