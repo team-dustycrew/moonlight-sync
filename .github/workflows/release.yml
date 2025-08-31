@@ -1,0 +1,59 @@
+name: Build and Release (release branch only)
+
+on:
+  push:
+    branches: [ release ]  # only run on Release Branch
+
+jobs:
+  build_release:
+    if: github.ref == 'refs/heads/release'  # extra guard for manual runs
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+          cache: true
+
+      - name: Restore
+        run: dotnet restore Moonlight/Moonlight.csproj
+
+      - name: Build (Release, x64)
+        run: dotnet build Moonlight/Moonlight.csproj -c Release -p:Platform=x64 --no-restore
+
+      - name: Detect packaged zips
+        id: artifacts
+        shell: pwsh
+        run: |
+          $z = Get-ChildItem 'Moonlight/bin/x64/Release' -Recurse -Filter *.zip | % FullName
+          if (-not $z) { throw "No package (.zip) found in Release output." }
+          "files=$($z -join "`n")" >> $env:GITHUB_OUTPUT
+
+      - name: Read plugin version from csproj
+        id: version
+        shell: pwsh
+        run: |
+          [xml]$c = Get-Content Moonlight/Moonlight.csproj
+          $v = $c.Project.PropertyGroup.Version
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Create/force tag
+        shell: bash
+        run: |
+          git tag -f v${{ steps.version.outputs.version }}
+          git push -f origin v${{ steps.version.outputs.version }}
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
+          generate_release_notes: true
+          files: ${{ steps.artifacts.outputs.files }}
