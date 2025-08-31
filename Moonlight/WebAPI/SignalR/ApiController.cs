@@ -226,7 +226,9 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
     /// <returns>True if the client is healthy, false otherwise</returns>
     public async Task<bool> CheckClientHealth()
     {
-        return await _moonlightHub!.InvokeAsync<bool>(nameof(CheckClientHealth)).ConfigureAwait(false);
+        if (_moonlightHub == null || _moonlightHub.State != HubConnectionState.Connected)
+            return false;
+        return await _moonlightHub.InvokeAsync<bool>(nameof(CheckClientHealth)).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -502,7 +504,20 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
             //if (requireReconnect) break;
 
             // Perform health check
-            _ = await CheckClientHealth().ConfigureAwait(false);
+            try
+            {
+                _ = await CheckClientHealth().ConfigureAwait(false);
+            }
+            catch (HubException ex) when (ex.Message?.IndexOf("unauthorized", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                AuthFailureMessage = "Unauthorized";
+                await StopConnectionAsync(ServerState.Unauthorized).ConfigureAwait(false);
+                return;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Health check failed");
+            }
         }
     }
 
@@ -584,7 +599,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
         _healthCheckTokenSource?.Cancel();
         _healthCheckTokenSource?.Dispose();
         _healthCheckTokenSource = new CancellationTokenSource();
-        _ = ClientHealthCheckAsync(_healthCheckTokenSource.Token);
+        _ = ClientHealthCheckAsync(_healthCheckTokenSource.Token).ContinueWith(t => Logger.LogError(t.Exception, "Health check task faulted"), TaskContinuationOptions.OnlyOnFaulted);
 
         _initialized = true;
     }

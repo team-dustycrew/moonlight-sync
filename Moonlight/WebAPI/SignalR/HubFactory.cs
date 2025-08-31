@@ -25,27 +25,27 @@ public class HubFactory : MediatorSubscriberBase
     /// Logger provider for the SignalR hub connection
     /// </summary>
     private readonly ILoggerProvider _loggingProvider;
-    
+
     /// <summary>
     /// Manager for server configuration settings and endpoints
     /// </summary>
     private readonly ServerConfigurationManager _serverConfigurationManager;
-    
+
     /// <summary>
     /// Provider for authentication tokens used in SignalR connections
     /// </summary>
     private readonly TokenProvider _tokenProvider;
-    
+
     /// <summary>
     /// Current SignalR hub connection instance, null if not created or disposed
     /// </summary>
     private HubConnection? _instance;
-    
+
     /// <summary>
     /// Flag indicating whether the factory has been disposed
     /// </summary>
     private bool _isDisposed = false;
-    
+
     /// <summary>
     /// Flag indicating whether the application is running under Wine (affects transport selection)
     /// </summary>
@@ -140,7 +140,7 @@ public class HubFactory : MediatorSubscriberBase
         _instance = new HubConnectionBuilder().WithUrl(_serverConfigurationManager.CurrentApiUrl + IMoonLightHub.Path, options =>
         {
             // Configure authentication token provider
-            // options.AccessTokenProvider = () => _tokenProvider.GetOrUpdateToken(ct);
+            options.AccessTokenProvider = () => _tokenProvider.GetOrUpdateToken(ct);
             options.Transports = transportType;
 
             // Always add API key header for negotiation/authentication
@@ -215,12 +215,12 @@ public class HubFactory : MediatorSubscriberBase
         /// The API key to inject into HTTP requests for authentication with the mNet service
         /// </summary>
         private readonly string _apiKey;
-        
+
         /// <summary>
         /// Logger instance for tracing HTTP request modifications and debugging
         /// </summary>
         private readonly ILogger _logger;
-        
+
         /// <summary>
         /// Initializes a new instance of the HeaderInjectingHandler class.
         /// </summary>
@@ -258,10 +258,10 @@ public class HubFactory : MediatorSubscriberBase
                     request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
                 }
             }
-            
+
             // Log without exposing header values
             _logger.LogTrace("SignalR HTTP {method} {uri} (auth header present: {present})", request.Method, request.RequestUri, request.Headers.Contains("X-MNet-Key"));
-            
+
             // Continue with the request using the base handler
             return base.SendAsync(request, cancellationToken);
         }
