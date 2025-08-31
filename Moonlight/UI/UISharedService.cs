@@ -748,7 +748,7 @@ public partial class UiSharedService : DisposableMediatorSubscriberBase
     {
         using (ImRaii.Disabled(true))
         {
-            var aliasPairs = [new UIDAliasPair(item.UID ?? null, null)];
+            List<UIDAliasPair> aliasPairs = [new UIDAliasPair(item.UID ?? null, null)];
             var uidComboName = "UID###" + item.CharacterName + item.WorldId + serverUri + indexOffset + aliasPairs.Count;
             DrawCombo(uidComboName, aliasPairs,
                 (v) =>
