@@ -577,8 +577,7 @@ public class CompactUi : WindowMediatorSubscriberBase
             ServerState.Connected => string.Empty,
             ServerState.NoSecretKey => "You have no secret key set for this current character. Open Settings -> Service Settings and set a secret key for the current character. You can reuse the same secret key for multiple characters.",
             ServerState.MultiChara => "Your Character Configuration has multiple characters configured with same name and world. You will not be able to connect until you fix this issue. Remove the duplicates from the configuration in Settings -> Service Settings -> Character Management and reconnect manually after.",
-            ServerState.OAuthMisconfigured => "OAuth2 is enabled but not fully configured, verify in the Settings -> Service Settings that you have OAuth2 connected and, importantly, a UID assigned to your current character.",
-            ServerState.OAuthLoginTokenStale => "Your OAuth2 login token is stale and cannot be used to renew. Go to the Settings -> Service Settings and unlink then relink your OAuth2 configuration.",
+            // OAuth removed
             ServerState.NoAutoLogon => "This character has automatic login into Moonlight disabled. Press the connect button to connect to Moonlight.",
             _ => string.Empty
         };
@@ -599,8 +598,7 @@ public class CompactUi : WindowMediatorSubscriberBase
             ServerState.RateLimited => ImGuiColors.DalamudYellow,
             ServerState.NoSecretKey => ImGuiColors.DalamudYellow,
             ServerState.MultiChara => ImGuiColors.DalamudYellow,
-            ServerState.OAuthMisconfigured => ImGuiColors.DalamudRed,
-            ServerState.OAuthLoginTokenStale => ImGuiColors.DalamudRed,
+            // OAuth removed
             ServerState.NoAutoLogon => ImGuiColors.DalamudYellow,
             _ => ImGuiColors.DalamudRed
         };
@@ -620,8 +618,7 @@ public class CompactUi : WindowMediatorSubscriberBase
             ServerState.RateLimited => "Rate Limited",
             ServerState.NoSecretKey => "No Secret Key",
             ServerState.MultiChara => "Duplicate Characters",
-            ServerState.OAuthMisconfigured => "Misconfigured OAuth2",
-            ServerState.OAuthLoginTokenStale => "Stale OAuth2",
+            // OAuth removed
             ServerState.NoAutoLogon => "Auto Login disabled",
             ServerState.Connected => _apiController.DisplayName,
             _ => string.Empty

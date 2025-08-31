@@ -17,7 +17,7 @@ namespace Moonlight.WebAPI.SignalR;
 
 /// <summary>
 /// Provides JWT token management for SignalR connections, handling token generation, renewal, and caching.
-/// Supports both OAuth2 and secret key authentication methods.
+/// Uses mNet/global or server-specific secret keys only (OAuth removed).
 /// </summary>
 public sealed class TokenProvider : IDisposable, IMediatorSubscriber
 {
@@ -68,7 +68,7 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
         _dalamudUtil = dalamudUtil;
 
         // Get assembly version for potential future use
-        var ver = Assembly.GetExecutingAssembly().GetName().Version;
+        // version intentionally unused
         Mediator = moonlightMediator;
         _httpClient = httpClient;
         _mnetConfigService = mnetConfigService;
@@ -108,7 +108,6 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
 
     /// <summary>
     /// Requests a new JWT token from the server, either as a fresh token or renewal.
-    /// Handles both OAuth2 and secret key authentication methods.
     /// </summary>
     /// <param name="isRenewal">True if this is a token renewal, false for a new token</param>
     /// <param name="identifier">The JWT identifier containing authentication information</param>
@@ -128,48 +127,26 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
             {
                 _logger.LogDebug("GetNewToken: Requesting");
 
-                // Handle secret key authentication (non-OAuth2)
-                if (!_serverManager.CurrentServer.UseOAuth2)
-                {
-                    // Build the authentication endpoint URI
-                    tokenUri = MoonLightAuth.AuthFullPath(new Uri(_serverManager.CurrentApiUrl
-                        .Replace("wss://", "https://", StringComparison.OrdinalIgnoreCase)
-                        .Replace("ws://", "http://", StringComparison.OrdinalIgnoreCase)));
+                // Build the authentication endpoint URI
+                tokenUri = MoonLightAuth.AuthFullPath(new Uri(_serverManager.CurrentApiUrl
+                    .Replace("wss://", "https://", StringComparison.OrdinalIgnoreCase)
+                    .Replace("ws://", "http://", StringComparison.OrdinalIgnoreCase)));
 
-                    // Prefer global mNet key when present, fallback to server-specific key
-                    var secretKey = _mnetConfigService.Current.ApiKey;
-                    if (string.IsNullOrEmpty(secretKey)) secretKey = _serverManager.GetSecretKey(out _);
-                    if (string.IsNullOrEmpty(secretKey)) throw new InvalidOperationException("No secret key available (mNet/global or server-specific)");
+                // Prefer global mNet key when present, fallback to server-specific key
+                var secretKey = _mnetConfigService.Current.ApiKey;
+                if (string.IsNullOrEmpty(secretKey)) secretKey = _serverManager.GetSecretKey(out _);
+                if (string.IsNullOrEmpty(secretKey)) throw new InvalidOperationException("No secret key available (mNet/global or server-specific)");
 
-                    // Hash the secret key for authentication
-                    var auth = secretKey.GetHash256();
-                    _logger.LogInformation("Sending SecretKey Request to server with auth {auth}", string.Join("", identifier.SecretKeyOrOAuth.Take(10)));
+                // Hash the secret key for authentication
+                var auth = secretKey.GetHash256();
+                _logger.LogInformation("Sending SecretKey Request to server with auth {auth}", string.Join("", identifier.SecretKeyOrOAuth.Take(10)));
 
-                    // Send POST request with form data containing auth hash and character identifier
-                    result = await _httpClient.PostAsync(tokenUri, new FormUrlEncodedContent(
-                    [
-                            new KeyValuePair<string, string>("auth", auth),
-                            new KeyValuePair<string, string>("charaIdent", await _dalamudUtil.GetPlayerNameHashedAsync().ConfigureAwait(false)),
-                    ]), ct).ConfigureAwait(false);
-                }
-                else
-                {
-                    // Handle OAuth2 authentication
-                    tokenUri = MoonLightAuth.AuthWithOauthFullPath(new Uri(_serverManager.CurrentApiUrl
-                        .Replace("wss://", "https://", StringComparison.OrdinalIgnoreCase)
-                        .Replace("ws://", "http://", StringComparison.OrdinalIgnoreCase)));
-
-                    // Create POST request with OAuth2 credentials
-                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, tokenUri.ToString());
-                    request.Content = new FormUrlEncodedContent([
-                        new KeyValuePair<string, string>("uid", identifier.UID),
-                        new KeyValuePair<string, string>("charaIdent", identifier.CharaHash)
-                        ]);
-                    // Set Bearer token authorization header
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", identifier.SecretKeyOrOAuth);
-                    _logger.LogInformation("Sending OAuth Request to server with auth {auth}", string.Join("", identifier.SecretKeyOrOAuth.Take(10)));
-                    result = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
-                }
+                // Send POST request with form data containing auth hash and character identifier
+                result = await _httpClient.PostAsync(tokenUri, new FormUrlEncodedContent(
+                [
+                        new KeyValuePair<string, string>("auth", auth),
+                        new KeyValuePair<string, string>("charaIdent", await _dalamudUtil.GetPlayerNameHashedAsync().ConfigureAwait(false)),
+                ]), ct).ConfigureAwait(false);
             }
             else
             {
@@ -177,7 +154,7 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
                 _logger.LogDebug("GetNewToken: Renewal");
 
                 // Build the token renewal endpoint URI
-                tokenUri = MoonLightAuth.RenewTokenFullPath(new Uri(_serverManager.CurrentApiUrl
+                tokenUri = MoonLightAuth.AuthFullPath(new Uri(_serverManager.CurrentApiUrl
                     .Replace("wss://", "https://", StringComparison.OrdinalIgnoreCase)
                     .Replace("ws://", "http://", StringComparison.OrdinalIgnoreCase)));
 
@@ -232,7 +209,7 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
 
         // Log token prefix for debugging (avoid logging full token for security)
         _logger.LogTrace("GetNewToken: JWT prefix {prefix}...", string.Join("", response.Take(10)));
-        _logger.LogDebug("GetNewToken: Valid until {date}, ValidClaim until {date}", jwtToken.ValidTo,
+        _logger.LogDebug("GetNewToken: Valid until {validTo}, ValidClaim until {claimValidTo}", jwtToken.ValidTo,
                 new DateTime(long.Parse(jwtToken.Claims.Single(c => string.Equals(c.Type, "expiration_date", StringComparison.Ordinal)).Value), DateTimeKind.Utc));
 
         // Validate token time against system clock (within 10 minute tolerance)
@@ -257,7 +234,7 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
 
     /// <summary>
     /// Creates a JWT identifier based on current server configuration and player information.
-    /// Handles both OAuth2 and secret key authentication methods.
+    /// Uses secret key/mNet only (OAuth removed).
     /// </summary>
     /// <returns>A JWT identifier or null if player information is unavailable</returns>
     private async Task<JwtIdentifier?> GetIdentifier()
@@ -275,32 +252,17 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
                 return _lastJwtIdentifier;
             }
 
-            // Create identifier based on authentication method
-            if (_serverManager.CurrentServer.UseOAuth2)
-            {
-                // Get OAuth2 credentials from server manager
-                var (OAuthToken, UID) = _serverManager.GetOAuth2(out _)
-                    ?? throw new InvalidOperationException("Requested OAuth2 but received null");
+            // Get secret key, preferring global mNet key over server-specific key
+            var secretKey = _mnetConfigService.Current.ApiKey;
+            if (string.IsNullOrEmpty(secretKey))
+                secretKey = _serverManager.GetSecretKey(out _)
+                    ?? throw new InvalidOperationException("Requested SecretKey but received null");
 
-                // Create OAuth2-based identifier
-                jwtIdentifier = new(_serverManager.CurrentApiUrl,
-                    playerIdentifier,
-                    UID, OAuthToken);
-            }
-            else
-            {
-                // Get secret key, preferring global mNet key over server-specific key
-                var secretKey = _mnetConfigService.Current.ApiKey;
-                if (string.IsNullOrEmpty(secretKey))
-                    secretKey = _serverManager.GetSecretKey(out _)
-                        ?? throw new InvalidOperationException("Requested SecretKey but received null");
-
-                // Create secret key-based identifier
-                jwtIdentifier = new(_serverManager.CurrentApiUrl,
-                                    playerIdentifier,
-                                    string.Empty,
-                                    secretKey);
-            }
+            // Create secret key-based identifier
+            jwtIdentifier = new(_serverManager.CurrentApiUrl,
+                                playerIdentifier,
+                                string.Empty,
+                                secretKey);
             // Cache the identifier for future fallback use
             _lastJwtIdentifier = jwtIdentifier;
         }
@@ -381,64 +343,5 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
         return await GetNewToken(renewal, jwtIdentifier, ct).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Attempts to update the OAuth2 login token if it's nearing expiration or if forced.
-    /// Only works when the server is configured for OAuth2 authentication.
-    /// </summary>
-    /// <param name="currentServer">The server storage configuration to update</param>
-    /// <param name="forced">Whether to force token renewal regardless of expiration</param>
-    /// <returns>True if the token was successfully updated or is still valid, false otherwise</returns>
-    public async Task<bool> TryUpdateOAuth2LoginTokenAsync(ServerStorage currentServer, bool forced = false)
-    {
-        // Get OAuth2 credentials from server manager
-        var oauth2 = _serverManager.GetOAuth2(out _);
-        if (oauth2 == null) return false;
-
-        // Parse the current OAuth2 token
-        var handler = new JwtSecurityTokenHandler();
-        var jwt = handler.ReadJwtToken(oauth2.Value.OAuthToken);
-
-        // Check if renewal is needed (unless forced)
-        if (!forced)
-        {
-            // If token is valid for more than 7 days, no renewal needed
-            if (jwt.ValidTo == DateTime.MinValue || jwt.ValidTo.Subtract(TimeSpan.FromDays(7)) > DateTime.Now)
-                return true;
-
-            // If token is already expired, renewal will fail
-            if (jwt.ValidTo < DateTime.UtcNow)
-                return false;
-        }
-
-        // Build the OAuth2 token renewal endpoint URI
-        var tokenUri = MoonLightAuth.RenewOAuthTokenFullPath(new Uri(currentServer.ServerUri
-            .Replace("wss://", "https://", StringComparison.OrdinalIgnoreCase)
-            .Replace("ws://", "http://", StringComparison.OrdinalIgnoreCase)));
-
-        // Create POST request for token renewal
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, tokenUri.ToString());
-        // Set Bearer token authorization header with current OAuth2 token
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", oauth2.Value.OAuthToken);
-        _logger.LogInformation("Sending Request to server with auth {auth}", string.Join("", oauth2.Value.OAuthToken.Take(10)));
-
-        // Send the renewal request
-        var result = await _httpClient.SendAsync(request).ConfigureAwait(false);
-
-        // Handle unsuccessful renewal
-        if (!result.IsSuccessStatusCode)
-        {
-            _logger.LogWarning("Could not renew OAuth2 Login token, error code {error}", result.StatusCode);
-            // Clear the invalid OAuth2 token and save configuration
-            currentServer.OAuthToken = null;
-            _serverManager.Save();
-            return false;
-        }
-
-        // Read the new token and update server configuration
-        var newToken = await result.Content.ReadAsStringAsync().ConfigureAwait(false);
-        currentServer.OAuthToken = newToken;
-        _serverManager.Save();
-
-        return true;
-    }
+    // OAuth refresh removed
 }

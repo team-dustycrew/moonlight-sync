@@ -90,60 +90,13 @@ public class ServerConfigurationManager
         }
     }
 
-    public (string OAuthToken, string UID)? GetOAuth2(out bool hasMulti, int serverIdx = -1)
-    {
-        ServerStorage? currentServer;
-        currentServer = serverIdx == -1 ? CurrentServer : GetServerByIndex(serverIdx);
-        if (currentServer == null)
-        {
-            currentServer = new();
-            Save();
-        }
-        hasMulti = false;
-
-        var charaName = _dalamudUtil.GetPlayerNameAsync().GetAwaiter().GetResult();
-        var worldId = _dalamudUtil.GetHomeWorldIdAsync().GetAwaiter().GetResult();
-        var cid = _dalamudUtil.GetCIDAsync().GetAwaiter().GetResult();
-
-        var auth = currentServer.Authentications.FindAll(f => string.Equals(f.CharacterName, charaName) && f.WorldId == worldId);
-        if (auth.Count >= 2)
-        {
-            _logger.LogTrace("GetOAuth2 accessed, returning null because multiple ({count}) identical characters.", auth.Count);
-            hasMulti = true;
-            return null;
-        }
-
-        if (auth.Count == 0)
-        {
-            _logger.LogTrace("GetOAuth2 accessed, returning null because no set up characters for {chara} on {world}", charaName, worldId);
-            return null;
-        }
-
-        if (auth.Single().LastSeenCID != cid)
-        {
-            auth.Single().LastSeenCID = cid;
-            _logger.LogTrace("GetOAuth2 accessed, updating CID for {chara} on {world} to {cid}", charaName, worldId, cid);
-            Save();
-        }
-
-        if (!string.IsNullOrEmpty(auth.Single().UID) && !string.IsNullOrEmpty(currentServer.OAuthToken))
-        {
-            _logger.LogTrace("GetOAuth2 accessed, returning {key} ({keyValue}) for {chara} on {world}", auth.Single().UID, string.Join("", currentServer.OAuthToken.Take(10)), charaName, worldId);
-            return (currentServer.OAuthToken, auth.Single().UID!);
-        }
-
-        _logger.LogTrace("GetOAuth2 accessed, returning null because no UID found for {chara} on {world} or OAuthToken is not configured.", charaName, worldId);
-
-        return null;
-    }
-
     public string? GetMNetKey(int serverIdx = -1)
     {
         if (_mNetConfigService.Current.ApiKey.IsNullOrEmpty())
         {
             return "";
         }
-        
+
         ServerStorage? currentServer;
         currentServer = serverIdx == -1 ? CurrentServer : GetServerByIndex(serverIdx);
         if (currentServer == null)
@@ -167,7 +120,7 @@ public class ServerConfigurationManager
 
             Save();
         }
-        
+
         return _mNetConfigService.Current.ApiKey;
     }
 
@@ -249,24 +202,6 @@ public class ServerConfigurationManager
         }
     }
 
-    public string GetDiscordUserFromToken(ServerStorage server)
-    {
-        JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
-        if (string.IsNullOrEmpty(server.OAuthToken)) return string.Empty;
-        try
-        {
-            var token = handler.ReadJwtToken(server.OAuthToken);
-            return token.Claims.First(f => string.Equals(f.Type, "discord_user", StringComparison.Ordinal)).Value!;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Could not read jwt, resetting it");
-            server.OAuthToken = null;
-            Save();
-            return string.Empty;
-        }
-    }
-
     public string[] GetServerNames()
     {
         return _configService.Current.ServerStorage.Select(v => v.ServerName).ToArray();
@@ -303,7 +238,7 @@ public class ServerConfigurationManager
         {
             CharacterName = _dalamudUtil.GetPlayerNameAsync().GetAwaiter().GetResult(),
             WorldId = _dalamudUtil.GetHomeWorldIdAsync().GetAwaiter().GetResult(),
-            SecretKeyIdx = !server.UseOAuth2 ? server.SecretKeys.Last().Key : -1,
+            SecretKeyIdx = server.SecretKeys.Last().Key,
             LastSeenCID = _dalamudUtil.GetCIDAsync().GetAwaiter().GetResult()
         });
         Save();
@@ -498,7 +433,7 @@ public class ServerConfigurationManager
 
     internal void AutoPopulateNoteForUid(Guid uid, string note)
     {
-        if (_moonlightConfigService.Current.AutoPopulateEmptyNotesFromCharaName == false || GetNoteForUid(uid) != null)
+        if (!_moonlightConfigService.Current.AutoPopulateEmptyNotesFromCharaName || GetNoteForUid(uid) != null)
             return;
 
         SetNoteForUid(uid, note, save: true);
@@ -520,7 +455,7 @@ public class ServerConfigurationManager
     {
         if (_configService.Current.ServerStorage.Count == 0 || !string.Equals(_configService.Current.ServerStorage[0].ServerUri, ApiController.MainServiceUri, StringComparison.OrdinalIgnoreCase))
         {
-            _configService.Current.ServerStorage.Insert(0, new ServerStorage() { ServerUri = ApiController.MainServiceUri, ServerName = ApiController.MainServer, UseOAuth2 = true });
+            _configService.Current.ServerStorage.Insert(0, new ServerStorage() { ServerUri = ApiController.MainServiceUri, ServerName = ApiController.MainServer });
         }
         Save();
     }
@@ -539,68 +474,6 @@ public class ServerConfigurationManager
         {
             _serverTagConfig.Current.ServerTagStorage[CurrentApiUrl] = new();
         }
-    }
-
-    public async Task<Dictionary<string, string>> GetUIDsWithDiscordToken(string serverUri, string token)
-    {
-        try
-        {
-            var baseUri = serverUri.Replace("wss://", "https://").Replace("ws://", "http://");
-            var oauthCheckUri = MoonLightAuth.GetUIDsFullPath(new Uri(baseUri));
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var response = await _httpClient.GetAsync(oauthCheckUri).ConfigureAwait(false);
-            var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-            return await JsonSerializer.DeserializeAsync<Dictionary<string, string>>(responseStream).ConfigureAwait(false) ?? [];
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failure getting UIDs");
-            return [];
-        }
-    }
-
-    public async Task<Uri?> CheckDiscordOAuth(string serverUri)
-    {
-        try
-        {
-            var baseUri = serverUri.Replace("wss://", "https://").Replace("ws://", "http://");
-            var oauthCheckUri = MoonLightAuth.GetDiscordOAuthEndpointFullPath(new Uri(baseUri));
-            var response = await _httpClient.GetFromJsonAsync<Uri?>(oauthCheckUri).ConfigureAwait(false);
-            return response;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failure checking for Discord Auth");
-            return null;
-        }
-    }
-
-    public async Task<string?> GetDiscordOAuthToken(Uri discordAuthUri, string serverUri, CancellationToken token)
-    {
-        var sessionId = BitConverter.ToString(RandomNumberGenerator.GetBytes(64)).Replace("-", "").ToLower();
-        Util.OpenLink(discordAuthUri.ToString() + "?sessionId=" + sessionId);
-
-        string? discordToken = null;
-        using CancellationTokenSource timeOutCts = new();
-        timeOutCts.CancelAfter(TimeSpan.FromSeconds(60));
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeOutCts.Token, token);
-        try
-        {
-            var baseUri = serverUri.Replace("wss://", "https://").Replace("ws://", "http://");
-            var oauthCheckUri = MoonLightAuth.GetDiscordOAuthTokenFullPath(new Uri(baseUri), sessionId);
-            var response = await _httpClient.GetAsync(oauthCheckUri, linkedCts.Token).ConfigureAwait(false);
-            discordToken = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failure getting Discord Token");
-            return null;
-        }
-
-        if (discordToken == null)
-            return null;
-
-        return discordToken;
     }
 
     public HttpTransportType GetTransport()

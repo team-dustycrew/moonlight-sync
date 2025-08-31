@@ -58,10 +58,7 @@ public partial class UiSharedService : DisposableMediatorSubscriberBase
     private bool _customizePlusExists = false;
     private string _customServerName = "";
     private string _customServerUri = "";
-    private Task<Uri?>? _discordOAuthCheck;
-    private Task<string?>? _discordOAuthGetCode;
-    private CancellationTokenSource _discordOAuthGetCts = new();
-    private Task<Dictionary<string, string>>? _discordOAuthUIDs;
+    // OAuth removed
     private bool _glamourerExists = false;
     private bool _heelsExists = false;
     private bool _honorificExists = false;
@@ -69,7 +66,7 @@ public partial class UiSharedService : DisposableMediatorSubscriberBase
     private bool _isOneDrive = false;
     private bool _isPenumbraDirectory = false;
     private bool _moodlesExists = false;
-    private Dictionary<string, DateTime> _oauthTokenExpiry = new();
+    // OAuth removed
     private bool _penumbraExists = false;
     private bool _petNamesExists = false;
     private int _serverSelectionIndex = -1;
@@ -622,155 +619,7 @@ public partial class UiSharedService : DisposableMediatorSubscriberBase
         AttachToolTip(helpText);
     }
 
-    public void DrawOAuth(ServerStorage selectedServer)
-    {
-        var oauthToken = selectedServer.OAuthToken;
-        _ = ImRaii.PushIndent(10f);
-        if (oauthToken == null)
-        {
-            if (_discordOAuthCheck == null)
-            {
-                if (IconTextButton(FontAwesomeIcon.QuestionCircle, "Check if Server supports Discord OAuth2"))
-                {
-                    _discordOAuthCheck = _serverConfigurationManager.CheckDiscordOAuth(selectedServer.ServerUri);
-                }
-            }
-            else
-            {
-                if (!_discordOAuthCheck.IsCompleted)
-                {
-                    ColorTextWrapped($"Checking OAuth2 compatibility with {selectedServer.ServerUri}", ImGuiColors.DalamudYellow);
-                }
-                else
-                {
-                    if (_discordOAuthCheck.Result != null)
-                    {
-                        ColorTextWrapped("Server is compatible with Discord OAuth2", ImGuiColors.HealerGreen);
-                    }
-                    else
-                    {
-                        ColorTextWrapped("Server is not compatible with Discord OAuth2", ImGuiColors.DalamudRed);
-                    }
-                }
-            }
-
-            if (_discordOAuthCheck != null && _discordOAuthCheck.IsCompleted)
-            {
-                if (IconTextButton(FontAwesomeIcon.ArrowRight, "Authenticate with Server"))
-                {
-                    _discordOAuthGetCode = _serverConfigurationManager.GetDiscordOAuthToken(_discordOAuthCheck.Result!, selectedServer.ServerUri, _discordOAuthGetCts.Token);
-                }
-                else if (_discordOAuthGetCode != null && !_discordOAuthGetCode.IsCompleted)
-                {
-                    TextWrapped("A browser window has been opened, follow it to authenticate. Click the button below if you accidentally closed the window and need to restart the authentication.");
-                    if (IconTextButton(FontAwesomeIcon.Ban, "Cancel Authentication"))
-                    {
-                        _discordOAuthGetCts = _discordOAuthGetCts.CancelRecreate();
-                        _discordOAuthGetCode = null;
-                    }
-                }
-                else if (_discordOAuthGetCode != null && _discordOAuthGetCode.IsCompleted)
-                {
-                    TextWrapped("Discord OAuth is completed, status: ");
-                    ImGui.SameLine();
-                    if (_discordOAuthGetCode.Result != null)
-                    {
-                        selectedServer.OAuthToken = _discordOAuthGetCode.Result;
-                        _discordOAuthGetCode = null;
-                        _serverConfigurationManager.Save();
-                        ColorTextWrapped("Success", ImGuiColors.HealerGreen);
-                    }
-                    else
-                    {
-                        ColorTextWrapped("Failed, please check /xllog for more information", ImGuiColors.DalamudRed);
-                    }
-                }
-            }
-        }
-
-        if (oauthToken != null)
-        {
-            if (!_oauthTokenExpiry.TryGetValue(oauthToken, out DateTime tokenExpiry))
-            {
-                try
-                {
-                    var handler = new JwtSecurityTokenHandler();
-                    var jwt = handler.ReadJwtToken(oauthToken);
-                    tokenExpiry = _oauthTokenExpiry[oauthToken] = jwt.ValidTo;
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogWarning(ex, "Could not parse OAuth token, deleting");
-                    selectedServer.OAuthToken = null;
-                    _serverConfigurationManager.Save();
-                }
-            }
-
-            if (tokenExpiry > DateTime.UtcNow)
-            {
-                ColorTextWrapped($"OAuth2 is enabled, linked to: Discord User {_serverConfigurationManager.GetDiscordUserFromToken(selectedServer)}", ImGuiColors.HealerGreen);
-                TextWrapped($"The OAuth2 token will expire on {tokenExpiry:yyyy-MM-dd} and automatically renew itself during login on or after {(tokenExpiry - TimeSpan.FromDays(7)):yyyy-MM-dd}.");
-                using (ImRaii.Disabled(!CtrlPressed()))
-                {
-                    if (IconTextButton(FontAwesomeIcon.Exclamation, "Renew OAuth2 token manually") && CtrlPressed())
-                    {
-                        _ = _tokenProvider.TryUpdateOAuth2LoginTokenAsync(selectedServer, forced: true)
-                            .ContinueWith((_) => _apiController.CreateConnectionsAsync());
-                    }
-                }
-                DrawHelpText("Hold CTRL to manually refresh your OAuth2 token. Normally you do not need to do this.");
-                ImGuiHelpers.ScaledDummy(10f);
-
-                if ((_discordOAuthUIDs == null || _discordOAuthUIDs.IsCompleted)
-                    && IconTextButton(FontAwesomeIcon.Question, "Check Discord Connection"))
-                {
-                    _discordOAuthUIDs = _serverConfigurationManager.GetUIDsWithDiscordToken(selectedServer.ServerUri, oauthToken);
-                }
-                else if (_discordOAuthUIDs != null)
-                {
-                    if (!_discordOAuthUIDs.IsCompleted)
-                    {
-                        ColorTextWrapped("Checking UIDs on Server", ImGuiColors.DalamudYellow);
-                    }
-                    else
-                    {
-                        var foundUids = _discordOAuthUIDs.Result?.Count ?? 0;
-                        var primaryUid = _discordOAuthUIDs.Result?.FirstOrDefault() ?? new KeyValuePair<string, string>(string.Empty, string.Empty);
-                        var vanity = string.IsNullOrEmpty(primaryUid.Value) ? "-" : primaryUid.Value;
-                        if (foundUids > 0)
-                        {
-                            ColorTextWrapped($"Found {foundUids} associated UIDs on the server, Primary UID: {primaryUid.Key} (Vanity UID: {vanity})",
-                                ImGuiColors.HealerGreen);
-                        }
-                        else
-                        {
-                            ColorTextWrapped($"Found no UIDs associated to this linked OAuth2 account", ImGuiColors.DalamudRed);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                ColorTextWrapped("The OAuth2 token is stale and expired. Please renew the OAuth2 connection.", ImGuiColors.DalamudRed);
-                if (IconTextButton(FontAwesomeIcon.Exclamation, "Renew OAuth2 connection"))
-                {
-                    selectedServer.OAuthToken = null;
-                    _serverConfigurationManager.Save();
-                    _ = _serverConfigurationManager.CheckDiscordOAuth(selectedServer.ServerUri)
-                        .ContinueWith(async (urlTask) =>
-                        {
-                            var url = await urlTask.ConfigureAwait(false);
-                            var token = await _serverConfigurationManager.GetDiscordOAuthToken(url!, selectedServer.ServerUri, CancellationToken.None).ConfigureAwait(false);
-                            selectedServer.OAuthToken = token;
-                            _serverConfigurationManager.Save();
-                            await _apiController.CreateConnectionsAsync().ConfigureAwait(false);
-                        });
-                }
-            }
-
-            DrawUnlinkOAuthButton(selectedServer);
-        }
-    }
+    // OAuth removed
 
     public bool DrawOtherPluginState()
     {
@@ -883,8 +732,7 @@ public partial class UiSharedService : DisposableMediatorSubscriberBase
                 _serverConfigurationManager.AddServer(new ServerStorage()
                 {
                     ServerName = _customServerName,
-                    ServerUri = _customServerUri,
-                    UseOAuth2 = true
+                    ServerUri = _customServerUri
                 });
                 _customServerName = string.Empty;
                 _customServerUri = string.Empty;
@@ -898,9 +746,9 @@ public partial class UiSharedService : DisposableMediatorSubscriberBase
 
     public void DrawUIDComboForAuthentication(int indexOffset, Authentication item, string serverUri, ILogger? logger = null)
     {
-        using (ImRaii.Disabled(_discordOAuthUIDs == null))
+        using (ImRaii.Disabled(true))
         {
-            var aliasPairs = _discordOAuthUIDs?.Result?.Select(t => new UIDAliasPair(t.Key, t.Value)).ToList() ?? [new UIDAliasPair(item.UID ?? null, null)];
+            var aliasPairs = [new UIDAliasPair(item.UID ?? null, null)];
             var uidComboName = "UID###" + item.CharacterName + item.WorldId + serverUri + indexOffset + aliasPairs.Count;
             DrawCombo(uidComboName, aliasPairs,
                 (v) =>
@@ -929,62 +777,15 @@ public partial class UiSharedService : DisposableMediatorSubscriberBase
                 aliasPairs.Find(f => string.Equals(f.UID, item.UID, StringComparison.Ordinal)) ?? default);
         }
 
-        if (_discordOAuthUIDs == null)
+        if (true)
         {
             AttachToolTip("Use the button above to update your UIDs from the service before you can assign UIDs to characters.");
         }
     }
 
-    public void DrawUnlinkOAuthButton(ServerStorage selectedServer)
-    {
-        using (ImRaii.Disabled(!CtrlPressed()))
-        {
-            if (IconTextButton(FontAwesomeIcon.Trash, "Unlink OAuth2 Connection") && UiSharedService.CtrlPressed())
-            {
-                selectedServer.OAuthToken = null;
-                _serverConfigurationManager.Save();
-                ResetOAuthTasksState();
-            }
-        }
-        DrawHelpText("Hold CTRL to unlink the current OAuth2 connection.");
-    }
+    // OAuth removed
 
-    public void DrawUpdateOAuthUIDsButton(ServerStorage selectedServer)
-    {
-        if (!selectedServer.UseOAuth2)
-            return;
-
-        using (ImRaii.Disabled(string.IsNullOrEmpty(selectedServer.OAuthToken)))
-        {
-            if ((_discordOAuthUIDs == null || _discordOAuthUIDs.IsCompleted)
-                && IconTextButton(FontAwesomeIcon.ArrowsSpin, "Update UIDs from Service")
-                && !string.IsNullOrEmpty(selectedServer.OAuthToken))
-            {
-                _discordOAuthUIDs = _serverConfigurationManager.GetUIDsWithDiscordToken(selectedServer.ServerUri, selectedServer.OAuthToken);
-            }
-        }
-        DateTime tokenExpiry = DateTime.MinValue;
-        if (!string.IsNullOrEmpty(selectedServer.OAuthToken) && !_oauthTokenExpiry.TryGetValue(selectedServer.OAuthToken, out tokenExpiry))
-        {
-            try
-            {
-                var handler = new JwtSecurityTokenHandler();
-                var jwt = handler.ReadJwtToken(selectedServer.OAuthToken);
-                tokenExpiry = _oauthTokenExpiry[selectedServer.OAuthToken] = jwt.ValidTo;
-            }
-            catch (Exception ex)
-            {
-                Logger.LogWarning(ex, "Could not parse OAuth token, deleting");
-                selectedServer.OAuthToken = null;
-                _serverConfigurationManager.Save();
-                tokenExpiry = DateTime.MinValue;
-            }
-        }
-        if (string.IsNullOrEmpty(selectedServer.OAuthToken) || tokenExpiry < DateTime.UtcNow)
-        {
-            ColorTextWrapped("You have no OAuth token or the OAuth token is expired. Please use the Service Configuration to link your OAuth2 account or refresh the token.", ImGuiColors.DalamudRed);
-        }
-    }
+    // OAuth removed
 
     public Vector2 GetIconButtonSize(FontAwesomeIcon icon)
     {
@@ -1069,13 +870,7 @@ public partial class UiSharedService : DisposableMediatorSubscriberBase
     [LibraryImport("user32")]
     internal static partial short GetKeyState(int nVirtKey);
 
-    internal void ResetOAuthTasksState()
-    {
-        _discordOAuthCheck = null;
-        _discordOAuthGetCts = _discordOAuthGetCts.CancelRecreate();
-        _discordOAuthGetCode = null;
-        _discordOAuthUIDs = null;
-    }
+    // OAuth removed
 
     protected override void Dispose(bool disposing)
     {

@@ -35,7 +35,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
     private string _timeoutLabel = string.Empty;
     private Task? _timeoutTask;
     private string[]? _tosParagraphs;
-    private bool _useLegacyLogin = false;
+    // OAuth removed
 
     private readonly MNetDevicePairingService _mnetPairing;
     private CancellationTokenSource _mnetPairingCts = new();
@@ -265,12 +265,12 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                                 _mnetUserCode = string.Empty;
                                 _mnetVerificationUri = string.Empty;
                                 _mnetDeviceCode = string.Empty;
-                                
+
                                 SubmitMNetKeyToServer(key);
                                 _ = Task.Run((Func<Task>)(() => _uiShared.ApiController.CreateConnectionsAsync()));
                             }
                         }
-                        catch (Exception ex)  
+                        catch (Exception ex)
                         {
                             _logger.LogWarning(ex, "mNet polling failed");
                         }
@@ -282,7 +282,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
             var mNetVerifyButtonText = "Save";
             var mNetVerifyButtonWidth = _mNetKey.Length != 64 ? 0 : ImGuiHelpers.GetButtonSize(mNetVerifyButtonText).X + ImGui.GetStyle().ItemSpacing.X;
             var mNetVerifyButtonTextSize = ImGui.CalcTextSize(mNetVerifyText);
-            
+
 
             ImGui.AlignTextToFramePadding();
             ImGui.TextUnformatted(mNetVerifyText);
@@ -303,7 +303,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                             _ = Task.Run((Func<Task>)(() => _uiShared.ApiController.CreateConnectionsAsync()));
                         }
                     }
-                    catch (Exception ex)  
+                    catch (Exception ex)
                     {
                         _logger.LogWarning(ex, "Failed to verify .mNet Auth Key");
                     }
@@ -318,25 +318,11 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                 if (node)
                 {
                     serverIdx = _uiShared.DrawServiceSelection(selectOnChange: true, showConnect: false);
-                    if (serverIdx != _prevIdx)
-                    {
-                        _uiShared.ResetOAuthTasksState();
-                        _prevIdx = serverIdx;
-                    }
-
                     selectedServer = _serverConfigurationManager.GetServerByIndex(serverIdx);
-                    _useLegacyLogin = !selectedServer.UseOAuth2;
-
-                    if (ImGui.Checkbox("Use Legacy Login", ref _useLegacyLogin))
-                    {
-                        _serverConfigurationManager.GetServerByIndex(serverIdx).UseOAuth2 = !_useLegacyLogin;
-                        
-                        _serverConfigurationManager.Save();
-                    }
                 }
             }
 
-            if (_useLegacyLogin)
+            // Always Secret Key path
             {
                 var text = "Enter Secret Key";
                 var buttonText = "Save";
@@ -344,9 +330,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                 var textSize = ImGui.CalcTextSize(text);
 
                 ImGuiHelpers.ScaledDummy(5);
-                UiSharedService.DrawGroupedCenteredColorText("Strongly consider to use OAuth2 to authenticate, if the server supports it (the current main server does). " +
-                    "The authentication flow is simpler and you do not require to store or maintain Secret Keys. " +
-                    "You already implicitly register using Discord, so the OAuth2 method will be cleaner and more straight-forward to use.", ImGuiColors.DalamudYellow, 500);
+                // OAuth info removed
                 ImGuiHelpers.ScaledDummy(5);
 
                 ImGui.AlignTextToFramePadding();
@@ -384,49 +368,6 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                         _secretKey = string.Empty;
                         _ = Task.Run((Func<Task>)(() => _uiShared.ApiController.CreateConnectionsAsync()));
                     }
-                }
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(selectedServer.OAuthToken))
-                {
-                    UiSharedService.TextWrapped("Press the button below to verify the server has OAuth2 capabilities. Afterwards, authenticate using Discord in the Browser window.");
-                    _uiShared.DrawOAuth(selectedServer);
-                }
-                else
-                {
-                    UiSharedService.ColorTextWrapped($"OAuth2 is connected. Linked to: Discord User {_serverConfigurationManager.GetDiscordUserFromToken(selectedServer)}", ImGuiColors.HealerGreen);
-                    UiSharedService.TextWrapped("Now press the update UIDs button to get a list of all of your UIDs on the server.");
-                    _uiShared.DrawUpdateOAuthUIDsButton(selectedServer);
-                    var playerName = _dalamudUtilService.GetPlayerName();
-                    var playerWorld = _dalamudUtilService.GetHomeWorldId();
-                    UiSharedService.TextWrapped($"Once pressed, select the UID you want to use for your current character {_dalamudUtilService.GetPlayerName()}. If no UIDs are visible, make sure you are connected to the correct Discord account. " +
-                        $"If that is not the case, use the unlink button below (hold CTRL to unlink).");
-                    _uiShared.DrawUnlinkOAuthButton(selectedServer);
-
-                    var auth = selectedServer.Authentications.Find(a => string.Equals(a.CharacterName, playerName, StringComparison.Ordinal) && a.WorldId == playerWorld);
-                    if (auth == null)
-                    {
-                        auth = new Authentication()
-                        {
-                            CharacterName = playerName,
-                            WorldId = playerWorld
-                        };
-                        selectedServer.Authentications.Add(auth);
-                        _serverConfigurationManager.Save();
-                    }
-
-                    _uiShared.DrawUIDComboForAuthentication(0, auth, selectedServer.ServerUri);
-
-                    using (ImRaii.Disabled(string.IsNullOrEmpty(auth.UID)))
-                    {
-                        if (_uiShared.IconTextButton(Dalamud.Interface.FontAwesomeIcon.Link, "Connect to Service"))
-                        {
-                            _ = Task.Run((Func<Task>)(() => _uiShared.ApiController.CreateConnectionsAsync()));
-                        }
-                    }
-                    if (string.IsNullOrEmpty(auth.UID))
-                        UiSharedService.AttachToolTip("Select a UID to be able to connect to the service");
                 }
             }
         }
@@ -486,5 +427,5 @@ public partial class IntroUi : WindowMediatorSubscriberBase
     [GeneratedRegex("^[A-Za-z0-9_-]{20,128}$")]
     private static partial Regex BaseUrlKeyRegex();
 
-    
+
 }

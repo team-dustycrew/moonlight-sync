@@ -129,7 +129,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
 
     public override void OnOpen()
     {
-        _uiShared.ResetOAuthTasksState();
+        // OAuth removed
         _speedTestCts = new();
     }
 
@@ -1334,7 +1334,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
                     }
                 }));
             }
-            
+
             if (!string.IsNullOrEmpty(_mnetUserCode))
             {
                 ImGui.Separator();
@@ -1371,7 +1371,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
             ImGui.Text("- Enter .mNet Key -");
             ImGui.InputText("", ref _mNetKey, 128);
             ImGui.SameLine();
-            
+
             if (ImGui.Button("Verify"))
             {
                 _ = Task.Run((Func<Task>)(async () =>
@@ -1384,13 +1384,13 @@ public class SettingsUi : WindowMediatorSubscriberBase
                             _ = Task.Run((Func<Task>)(() => _uiShared.ApiController.CreateConnectionsAsync()));
                         }
                     }
-                    catch (Exception ex)  
+                    catch (Exception ex)
                     {
                         _logger.LogWarning(ex, "Failed to verify .mNet Auth Key");
                     }
                 }));
             }
-            
+
             _uiShared.BigText("Service Actions");
             ImGuiHelpers.ScaledDummy(new Vector2(5, 5));
             if (ImGui.Button("Delete all my files"))
@@ -1497,7 +1497,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
         var idx = _uiShared.DrawServiceSelection();
         if (_lastSelectedServerIndex != idx)
         {
-            _uiShared.ResetOAuthTasksState();
+            // OAuth removed
             _secretKeysConversionCts = _secretKeysConversionCts.CancelRecreate();
             _secretKeysConversionTask = null;
             _lastSelectedServerIndex = idx;
@@ -1511,20 +1511,20 @@ public class SettingsUi : WindowMediatorSubscriberBase
             UiSharedService.ColorTextWrapped("For any changes to be applied to the current service you need to reconnect to the service.", ImGuiColors.DalamudYellow);
         }
 
-        bool useOauth = selectedServer.UseOAuth2;
+        bool useOauth = false;
 
         if (ImGui.BeginTabBar("serverTabBar"))
         {
             if (ImGui.BeginTabItem("Character Management"))
             {
-                if (selectedServer.SecretKeys.Any() || useOauth)
+                if (selectedServer.SecretKeys.Any())
                 {
                     UiSharedService.ColorTextWrapped("Characters listed here will automatically connect to the selected Moonlight service with the settings as provided below." +
                         " Make sure to enter the character names correctly or use the 'Add current character' button at the bottom.", ImGuiColors.DalamudYellow);
                     int i = 0;
-                    _uiShared.DrawUpdateOAuthUIDsButton(selectedServer);
+                    // OAuth removed
 
-                    if (selectedServer.UseOAuth2 && !string.IsNullOrEmpty(selectedServer.OAuthToken))
+                    if (false)
                     {
                         bool hasSetSecretKeysButNoUid = selectedServer.Authentications.Exists(u => u.SecretKeyIdx != -1 && string.IsNullOrEmpty(u.UID));
                         if (hasSetSecretKeysButNoUid)
@@ -1613,7 +1613,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
 
                         Dictionary<int, SecretKey> keys = [];
 
-                        if (!useOauth)
+                        if (true)
                         {
                             var secretKeyIdx = item.SecretKeyIdx;
                             keys = selectedServer.SecretKeys;
@@ -1630,11 +1630,11 @@ public class SettingsUi : WindowMediatorSubscriberBase
                             thisIsYou = true;
                         }
                         bool misManaged = false;
-                        if (selectedServer.UseOAuth2 && !string.IsNullOrEmpty(selectedServer.OAuthToken) && string.IsNullOrEmpty(item.UID))
+                        if (false && string.IsNullOrEmpty(item.UID))
                         {
                             misManaged = true;
                         }
-                        if (!selectedServer.UseOAuth2 && item.SecretKeyIdx == -1)
+                        if (item.SecretKeyIdx == -1)
                         {
                             misManaged = true;
                         }
@@ -1642,7 +1642,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
                         string text = thisIsYou ? "Your Current Character" : string.Empty;
                         if (misManaged)
                         {
-                            text += " [MISMANAGED (" + (selectedServer.UseOAuth2 ? "No UID Set" : "No Secret Key Set") + ")]";
+                            text += " [MISMANAGED (No Secret Key Set)]";
                             color = ImGuiColors.DalamudRed;
                         }
                         if (selectedServer.Authentications.Where(e => e != item).Any(e => string.Equals(e.CharacterName, item.CharacterName, StringComparison.Ordinal)
@@ -1675,7 +1675,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
                                 }
                             }, EqualityComparer<KeyValuePair<ushort, string>>.Default.Equals(data.FirstOrDefault(f => f.Key == worldIdx), default) ? data.First() : data.First(f => f.Key == worldIdx));
 
-                        if (!useOauth)
+                        if (true)
                         {
                             _uiShared.DrawCombo("Secret Key###" + item.CharacterName + i, keys, (w) => w.Value.FriendlyName,
                                 (w) =>
@@ -1837,28 +1837,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
 
                 ImGuiHelpers.ScaledDummy(5);
 
-                if (ImGui.Checkbox("Use Discord OAuth2 Authentication", ref useOauth))
-                {
-                    selectedServer.UseOAuth2 = useOauth;
-                    _serverConfigurationManager.Save();
-                }
-                _uiShared.DrawHelpText("Use Discord OAuth2 Authentication to identify with this server instead of secret keys");
-                if (useOauth)
-                {
-                    _uiShared.DrawOAuth(selectedServer);
-                    if (string.IsNullOrEmpty(_serverConfigurationManager.GetDiscordUserFromToken(selectedServer)))
-                    {
-                        ImGuiHelpers.ScaledDummy(10f);
-                        UiSharedService.ColorTextWrapped("You have enabled OAuth2 but it is not linked. Press the buttons Check, then Authenticate to link properly.", ImGuiColors.DalamudRed);
-                    }
-                    if (!string.IsNullOrEmpty(_serverConfigurationManager.GetDiscordUserFromToken(selectedServer))
-                        && selectedServer.Authentications.TrueForAll(u => string.IsNullOrEmpty(u.UID)))
-                    {
-                        ImGuiHelpers.ScaledDummy(10f);
-                        UiSharedService.ColorTextWrapped("You have enabled OAuth2 but no characters configured. Set the correct UIDs for your characters in \"Character Management\".",
-                            ImGuiColors.DalamudRed);
-                    }
-                }
+                // OAuth removed
 
                 if (!isMain && selectedServer != _serverConfigurationManager.CurrentServer)
                 {
@@ -1989,7 +1968,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
         var oauthCheckUri = MoonLightAuth.GetUIDsBasedOnSecretKeyFullPath(new Uri(baseUri));
         var requestContent = JsonContent.Create(secretKeyMapping.Select(k => k.Key).ToList());
         HttpRequestMessage requestMessage = new(HttpMethod.Post, oauthCheckUri);
-        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", serverStorage.OAuthToken);
+        // OAuth removed
         requestMessage.Content = requestContent;
 
         using var response = await _httpClient.SendAsync(requestMessage, token).ConfigureAwait(false);
