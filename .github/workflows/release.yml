@@ -43,20 +43,6 @@ jobs:
           cache-dependency-path: |
             **/packages.lock.json
 
-      - name: Restore (skip submodules)
-        run: dotnet restore Moonlight/Moonlight.csproj
-
-      - name: Build (Release, x64)
-        run: dotnet build Moonlight/Moonlight.csproj -c Release -p:Platform=x64 --no-restore
-
-      - name: Detect packaged zips
-        id: artifacts
-        shell: pwsh
-        run: |
-          $z = Get-ChildItem 'Moonlight/bin/x64/Release' -Recurse -Filter *.zip | % FullName
-          if (-not $z) { throw "No package (.zip) found in Release output." }
-          "files=$($z -join "`n")" >> $env:GITHUB_OUTPUT
-
       - name: Read plugin version from csproj
         id: version
         shell: pwsh
@@ -65,13 +51,42 @@ jobs:
           $v = $c.Project.PropertyGroup.Version
           "version=$v" >> $env:GITHUB_OUTPUT
 
+      - name: Check if version tag exists
+        id: tag_exists
+        shell: bash
+        run: |
+          if git rev-parse -q --verify "refs/tags/v${{ steps.version.outputs.version }}" >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Restore (skip submodules)
+        if: steps.tag_exists.outputs.exists == 'false'
+        run: dotnet restore Moonlight/Moonlight.csproj
+
+      - name: Build (Release, x64)
+        if: steps.tag_exists.outputs.exists == 'false'
+        run: dotnet build Moonlight/Moonlight.csproj -c Release -p:Platform=x64 --no-restore
+
+      - name: Detect packaged zips
+        if: steps.tag_exists.outputs.exists == 'false'
+        id: artifacts
+        shell: pwsh
+        run: |
+          $z = Get-ChildItem 'Moonlight/bin/x64/Release' -Recurse -Filter *.zip | % FullName
+          if (-not $z) { throw "No package (.zip) found in Release output." }
+          "files=$($z -join "`n")" >> $env:GITHUB_OUTPUT
+
       - name: Create/force tag
+        if: steps.tag_exists.outputs.exists == 'false'
         shell: bash
         run: |
           git tag -f v${{ steps.version.outputs.version }}
           git push -f origin v${{ steps.version.outputs.version }}
 
       - name: Publish GitHub Release
+        if: steps.tag_exists.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
@@ -81,7 +96,7 @@ jobs:
           files: ${{ steps.artifacts.outputs.files }}
 
       - name: Notify Discord (webhook)
-        if: success()
+        if: success() && steps.tag_exists.outputs.exists == 'false'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           VERSION: ${{ steps.version.outputs.version }}
@@ -92,7 +107,7 @@ jobs:
           $tag = "v$env:VERSION"
           $releaseUrl = "https://github.com/$repo/releases/tag/$tag"
           if ($env:VERSION -match '-') { $kind = 'Pre-release' } else { $kind = 'Release' }
-          $content = "**$kind** Moonlight $tag is live.`n$releaseUrl"
+          $content = "New **$kind** Moonlight $tag `n`n$releaseUrl"
           $payload = @{ content = $content; allowed_mentions = @{ parse = @() } } | ConvertTo-Json -Depth 4
           Invoke-RestMethod -Uri $env:DISCORD_WEBHOOK_URL -Method POST -ContentType 'application/json' -Body $payload
 
