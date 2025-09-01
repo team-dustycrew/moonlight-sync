@@ -165,9 +165,14 @@ jobs:
         shell: pwsh
         env:
           API_READ_TOKEN: ${{ secrets.API_READ_TOKEN }}
+          DUSTYPLUGINS_WRITE_TOKEN: ${{ secrets.DUSTYPLUGINS_WRITE_TOKEN }}
         run: |
           if (-not $env:API_READ_TOKEN) {
             Write-Host 'No API_READ_TOKEN secret set; skipping dustyplugins update.'
+            exit 0
+          }
+          if (-not $env:DUSTYPLUGINS_WRITE_TOKEN) {
+            Write-Host 'No DUSTYPLUGINS_WRITE_TOKEN secret set; skipping push (read-only).'
             exit 0
           }
 
@@ -232,7 +237,7 @@ jobs:
           if ($changed) {
             git add .
             git commit -m "chore(moonlight): bump AssemblyVersion to ${{ steps.version.outputs.version }} and update download links"
-            git push
+            git push https://x-access-token:$env:DUSTYPLUGINS_WRITE_TOKEN@github.com/team-dustycrew/dustyplugins.git HEAD:main
           }
 
       - name: Notify Discord (webhook)
