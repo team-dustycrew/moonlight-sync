@@ -49,8 +49,19 @@ jobs:
         run: |
           # Read current version from csproj
           [xml]$c = Get-Content Moonlight/Moonlight.csproj
-          $v = [string]$c.Project.PropertyGroup.Version
-          if (-not $v) { throw "Moonlight.csproj <Version> property not found" }
+          $pgs = @($c.Project.PropertyGroup)
+          $versionNode = $null
+          foreach ($pg in $pgs) {
+            if ($pg.Version) { $versionNode = $pg.Version; break }
+          }
+          if ($null -eq $versionNode) {
+            # Create <Version> in the first PropertyGroup if missing
+            $versionNode = $c.CreateElement('Version')
+            [void]$pgs[0].AppendChild($versionNode)
+            $versionNode.InnerText = '0.0.0.0'
+          }
+          $v = [string]$versionNode.InnerText
+          if (-not $v) { $v = '0.0.0.0' }
 
           # Normalize to 4 parts
           $parts = $v.Split('.')
@@ -88,7 +99,7 @@ jobs:
 
           # Write back to csproj only if changed
           if ($v -ne $next) {
-            $c.Project.PropertyGroup.Version = $next
+            $versionNode.InnerText = $next
             $c.Save('Moonlight/Moonlight.csproj')
           }
 
