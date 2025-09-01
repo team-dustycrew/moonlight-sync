@@ -134,8 +134,8 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
                     .Replace("wss://", "https://", StringComparison.OrdinalIgnoreCase)
                     .Replace("ws://", "http://", StringComparison.OrdinalIgnoreCase)));
 
-                // Require mNet API key
-                var secretKey = _mnetConfigService.Current.ApiKey;
+                // Require mNet API key (use same source as HubFactory for consistency)
+                var secretKey = _serverManager.GetMNetKey();
                 if (string.IsNullOrEmpty(secretKey)) throw new InvalidOperationException("No mNet API key configured");
 
                 _logger.LogInformation("Sending SecretKey Request to server with key {key}", string.Join("", secretKey.Take(10)));
@@ -166,7 +166,7 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
                 HttpRequestMessage request = new(HttpMethod.Post, tokenUri.ToString());
 
                 // Prepare JSON body with MNetKey
-                var renewKey = _mnetConfigService.Current.ApiKey;
+                var renewKey = _serverManager.GetMNetKey();
                 if (string.IsNullOrEmpty(renewKey)) throw new InvalidOperationException("No mNet API key configured");
                 var renewJson = JsonSerializer.Serialize(new
                 {
