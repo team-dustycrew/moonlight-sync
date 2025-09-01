@@ -9,6 +9,8 @@ using Moonlight.UI.Components;
 using Moonlight.UI.Handlers;
 using Moonlight.WebAPI;
 using System.Collections.Immutable;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Moonlight.UI;
 
@@ -50,7 +52,7 @@ public class DrawEntityFactory
         IImmutableList<Pair> allPairs)
     {
         return new DrawFolderGroup(groupFullInfoDto.Group.GID.ToString(), groupFullInfoDto, _apiController,
-            filteredPairs.Select(p => CreateDrawPair(new Guid(groupFullInfoDto.Group.GID.ToString() + p.Key.UserData.publicUserID.ToString()), p.Key, p.Value, groupFullInfoDto)).ToImmutableList(),
+            filteredPairs.Select(p => CreateDrawPair(StableGuidFromString(groupFullInfoDto.Group.GID.ToString() + p.Key.UserData.publicUserID.ToString()), p.Key, p.Value, groupFullInfoDto)).ToImmutableList(),
             allPairs, _tagHandler, _uidDisplayHandler, _mediator, _uiSharedService);
     }
 
@@ -58,7 +60,7 @@ public class DrawEntityFactory
         Dictionary<Pair, List<GroupFullInfoDto>> filteredPairs,
         IImmutableList<Pair> allPairs)
     {
-        return new(tag, filteredPairs.Select(u => CreateDrawPair(new Guid(tag), u.Key, u.Value, null)).ToImmutableList(),
+        return new(tag, filteredPairs.Select(u => CreateDrawPair(StableGuidFromString(tag), u.Key, u.Value, null)).ToImmutableList(),
             allPairs, _tagHandler, _apiController, _selectPairForTagUi, _uiSharedService);
     }
 
@@ -67,5 +69,12 @@ public class DrawEntityFactory
         return new DrawUserPair(id + user.UserData.publicUserID.ToString(), user, groups, currentGroup, _apiController, _uidDisplayHandler,
             _mediator, _selectTagForPairUi, _serverConfigurationManager, _uiSharedService, _playerPerformanceConfigService,
             _charaDataManager);
+    }
+
+    private static Guid StableGuidFromString(string input)
+    {
+        var bytes = Encoding.UTF8.GetBytes(input);
+        var hash = MD5.HashData(bytes);
+        return new Guid(hash);
     }
 }
