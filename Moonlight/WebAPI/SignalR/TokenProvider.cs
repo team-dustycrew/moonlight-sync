@@ -2,6 +2,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text;
+using System.Text.Json;
 
 using Microsoft.Extensions.Logging;
 
@@ -127,8 +129,8 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
             {
                 _logger.LogDebug("GetNewToken: Requesting");
 
-                // Build the authentication endpoint URI (use renew endpoint for initial token as well)
-                tokenUri = MoonLightAuth.RenewTokenFullPath(new Uri(_serverManager.CurrentApiUrl
+                // Build the authentication endpoint URI
+                tokenUri = MoonLightAuth.AuthFullPath(new Uri(_serverManager.CurrentApiUrl
                     .Replace("wss://", "https://", StringComparison.OrdinalIgnoreCase)
                     .Replace("ws://", "http://", StringComparison.OrdinalIgnoreCase)));
 
@@ -137,36 +139,37 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
                 if (string.IsNullOrEmpty(secretKey)) secretKey = _serverManager.GetSecretKey(out _);
                 if (string.IsNullOrEmpty(secretKey)) throw new InvalidOperationException("No secret key available (mNet/global or server-specific)");
 
-                // Hash the secret key for authentication
-                var auth = secretKey.GetHash256();
-                _logger.LogInformation("Sending SecretKey Request to server with auth {auth}", string.Join("", identifier.SecretKeyOrOAuth.Take(10)));
+                _logger.LogInformation("Sending SecretKey Request to server with key {key}", string.Join("", secretKey.Take(10)));
 
-                // Send POST request with form data containing auth hash and character identifier
-                result = await _httpClient.PostAsync(tokenUri, new FormUrlEncodedContent(
-                [
-                        new KeyValuePair<string, string>("auth", auth),
-                        new KeyValuePair<string, string>("charaIdent", await _dalamudUtil.GetPlayerNameHashedAsync().ConfigureAwait(false)),
-                ]), ct).ConfigureAwait(false);
+                // Send POST request with JSON body expected by the server
+                var json = JsonSerializer.Serialize(new
+                {
+                    MNetKey = secretKey,
+                    charaIdent = await _dalamudUtil.GetPlayerNameHashedAsync().ConfigureAwait(false),
+                });
+                using var content = new StringContent(json, Encoding.UTF8, "application/json");
+                result = await _httpClient.PostAsync(tokenUri, content, ct).ConfigureAwait(false);
             }
             else
             {
                 // Handle token renewal using existing cached token
                 _logger.LogDebug("GetNewToken: Renewal");
 
-                // Build the token renewal endpoint URI
-                tokenUri = MoonLightAuth.RenewTokenFullPath(new Uri(_serverManager.CurrentApiUrl
+                // Build the token renewal endpoint URI (same endpoint as issuance)
+                tokenUri = MoonLightAuth.AuthFullPath(new Uri(_serverManager.CurrentApiUrl
                     .Replace("wss://", "https://", StringComparison.OrdinalIgnoreCase)
                     .Replace("ws://", "http://", StringComparison.OrdinalIgnoreCase)));
 
-                // Create GET request for token renewal
-                HttpRequestMessage request = new(HttpMethod.Get, tokenUri.ToString());
+                // Create POST request for token renewal (same payload as issuance)
+                HttpRequestMessage request = new(HttpMethod.Post, tokenUri.ToString());
 
-                // Ensure we have a cached token to renew
-                if (!_tokenCache.TryGetValue(identifier, out var currentToken))
-                    throw new InvalidOperationException("No cached token to renew");
-
-                // Set Bearer token authorization header with current token
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", currentToken);
+                // Prepare JSON body with MNetKey and character identifier
+                var renewJson = JsonSerializer.Serialize(new
+                {
+                    MNetKey = _mnetConfigService.Current.ApiKey ?? _serverManager.GetSecretKey(out _),
+                    charaIdent = await _dalamudUtil.GetPlayerNameHashedAsync().ConfigureAwait(false),
+                });
+                request.Content = new StringContent(renewJson, Encoding.UTF8, "application/json");
                 result = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
             }
 
