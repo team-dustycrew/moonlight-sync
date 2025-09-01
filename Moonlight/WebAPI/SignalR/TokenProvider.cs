@@ -134,20 +134,23 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
                     .Replace("wss://", "https://", StringComparison.OrdinalIgnoreCase)
                     .Replace("ws://", "http://", StringComparison.OrdinalIgnoreCase)));
 
-                // Prefer global mNet key when present, fallback to server-specific key
+                // Require mNet API key
                 var secretKey = _mnetConfigService.Current.ApiKey;
-                if (string.IsNullOrEmpty(secretKey)) secretKey = _serverManager.GetSecretKey(out _);
-                if (string.IsNullOrEmpty(secretKey)) throw new InvalidOperationException("No secret key available (mNet/global or server-specific)");
+                if (string.IsNullOrEmpty(secretKey)) throw new InvalidOperationException("No mNet API key configured");
 
                 _logger.LogInformation("Sending SecretKey Request to server with key {key}", string.Join("", secretKey.Take(10)));
 
                 // Send POST request with JSON body expected by the server
                 var json = JsonSerializer.Serialize(new
                 {
-                    mNetKey = secretKey,
+                    MNetKey = secretKey,
                 });
                 using var content = new StringContent(json, Encoding.UTF8, "application/json");
-                result = await _httpClient.PostAsync(tokenUri, content, ct).ConfigureAwait(false);
+                using var request = new HttpRequestMessage(HttpMethod.Post, tokenUri.ToString());
+                request.Headers.TryAddWithoutValidation("X-MNet-Key", secretKey);
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                request.Content = content;
+                result = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
             }
             else
             {
@@ -163,10 +166,14 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
                 HttpRequestMessage request = new(HttpMethod.Post, tokenUri.ToString());
 
                 // Prepare JSON body with MNetKey
+                var renewKey = _mnetConfigService.Current.ApiKey;
+                if (string.IsNullOrEmpty(renewKey)) throw new InvalidOperationException("No mNet API key configured");
                 var renewJson = JsonSerializer.Serialize(new
                 {
-                    mNetKey = _mnetConfigService.Current.ApiKey ?? _serverManager.GetSecretKey(out _),
+                    MNetKey = renewKey,
                 });
+                request.Headers.TryAddWithoutValidation("X-MNet-Key", renewKey);
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 request.Content = new StringContent(renewJson, Encoding.UTF8, "application/json");
                 result = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
             }
