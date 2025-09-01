@@ -234,11 +234,9 @@ jobs:
             }
 
             if ($changed) {
-              if ($hasPluginsProp) {
-                $json = $data | ConvertTo-Json -Depth 100
-              } else {
-                $json = $arr | ConvertTo-Json -Depth 100
-              }
+              # Dalamud expects pluginmaster.json to be a JSON array of manifests
+              $json = $arr | ConvertTo-Json -Depth 100
+              if (-not ($json.TrimStart().StartsWith('['))) { $json = '[' + $json + ']' }
               Set-Content -Path $pmPath -Value $json -NoNewline
             }
           } else {
