@@ -144,8 +144,7 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
                 // Send POST request with JSON body expected by the server
                 var json = JsonSerializer.Serialize(new
                 {
-                    MNetKey = secretKey,
-                    charaIdent = await _dalamudUtil.GetPlayerNameHashedAsync().ConfigureAwait(false),
+                    mNetKey = secretKey,
                 });
                 using var content = new StringContent(json, Encoding.UTF8, "application/json");
                 result = await _httpClient.PostAsync(tokenUri, content, ct).ConfigureAwait(false);
@@ -163,21 +162,28 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
                 // Create POST request for token renewal (same payload as issuance)
                 HttpRequestMessage request = new(HttpMethod.Post, tokenUri.ToString());
 
-                // Prepare JSON body with MNetKey and character identifier
+                // Prepare JSON body with MNetKey
                 var renewJson = JsonSerializer.Serialize(new
                 {
-                    MNetKey = _mnetConfigService.Current.ApiKey ?? _serverManager.GetSecretKey(out _),
-                    charaIdent = await _dalamudUtil.GetPlayerNameHashedAsync().ConfigureAwait(false),
+                    mNetKey = _mnetConfigService.Current.ApiKey ?? _serverManager.GetSecretKey(out _),
                 });
                 request.Content = new StringContent(renewJson, Encoding.UTF8, "application/json");
                 result = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
             }
 
-            // Read the response content (should be the JWT token)
-            response = await result.Content.ReadAsStringAsync().ConfigureAwait(false);
+            // Read the response content as JSON
+            var responseJson = await result.Content.ReadAsStringAsync().ConfigureAwait(false);
+            response = responseJson; // capture raw body for error propagation
 
             // Ensure the HTTP request was successful
             result.EnsureSuccessStatusCode();
+
+            // Extract token from JSON { token, expiresUtc }
+            using (var doc = JsonDocument.Parse(responseJson))
+            {
+                response = doc.RootElement.GetProperty("token").GetString() ?? string.Empty;
+            }
+            if (string.IsNullOrEmpty(response)) throw new InvalidOperationException("Token missing in response");
 
             // Cache the new token
             _tokenCache[identifier] = response;
@@ -218,8 +224,7 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
 
         // Log token prefix for debugging (avoid logging full token for security)
         _logger.LogTrace("GetNewToken: JWT prefix {prefix}...", string.Join("", response.Take(10)));
-        _logger.LogDebug("GetNewToken: Valid until {validTo}, ValidClaim until {claimValidTo}", jwtToken.ValidTo,
-                new DateTime(long.Parse(jwtToken.Claims.Single(c => string.Equals(c.Type, "expiration_date", StringComparison.Ordinal)).Value), DateTimeKind.Utc));
+        _logger.LogDebug("GetNewToken: Valid until {validTo}", jwtToken.ValidTo);
 
         // Validate token time against system clock (within 10 minute tolerance)
         var dateTimeMinus10 = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(10));
