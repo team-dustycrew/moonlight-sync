@@ -233,22 +233,23 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
         _logger.LogTrace("GetNewToken: JWT prefix {prefix}...", string.Join("", response.Take(10)));
         _logger.LogDebug("GetNewToken: Valid until {validTo}", jwtToken.ValidTo);
 
-        // Validate token time against system clock (within 10 minute tolerance)
-        var dateTimeMinus10 = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(10));
-        var dateTimePlus10 = DateTime.UtcNow.Add(TimeSpan.FromMinutes(10));
-        var tokenTime = jwtToken.ValidTo;
+        // Validate token time against system clock (allowing 10 minutes skew).
+        // Only reject clearly invalid cases: token expired far in the past or not yet valid far in the future.
+        var nowUtc = DateTime.UtcNow;
+        var allowedSkew = TimeSpan.FromMinutes(10);
+        var expiredFarInPast = jwtToken.ValidTo != DateTime.MinValue && (nowUtc - jwtToken.ValidTo) > allowedSkew;
+        var notYetValidFarInFuture = jwtToken.ValidFrom != DateTime.MinValue && (jwtToken.ValidFrom - nowUtc) > allowedSkew;
 
-        // Check if token time is reasonable compared to system time
-        if (tokenTime <= dateTimeMinus10 || tokenTime >= dateTimePlus10)
+        if (expiredFarInPast || notYetValidFarInFuture)
         {
             // Remove invalid token from cache
             _tokenCache.TryRemove(identifier, out _);
             // Notify user of system clock issue
-            Mediator.Publish(new NotificationMessage("Invalid system clock", "The clock of your computer is invalid. " +
+            Mediator.Publish(new NotificationMessage("Invalid system clock", "The clock of your computer appears to be incorrect. " +
                 "Moonlight will not function properly if the time zone is not set correctly. " +
                 "Please set your computers time zone correctly and keep your clock synchronized with the internet.",
                 NotificationType.Error));
-            throw new InvalidOperationException($"JwtToken is behind DateTime.UtcNow, DateTime.UtcNow is possibly wrong. DateTime.UtcNow is {DateTime.UtcNow}, JwtToken.ValidTo is {jwtToken.ValidTo}");
+            throw new InvalidOperationException($"JWT time sanity check failed. NowUtc={nowUtc}, ValidFrom={jwtToken.ValidFrom}, ValidTo={jwtToken.ValidTo}");
         }
         return response;
     }
