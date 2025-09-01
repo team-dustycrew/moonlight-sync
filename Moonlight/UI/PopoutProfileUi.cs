@@ -117,7 +117,7 @@ public class PopoutProfileUi : WindowMediatorSubscriberBase
             ImGui.Separator();
             var imagePos = ImGui.GetCursorPos();
             ImGuiHelpers.ScaledDummy(256, 256 * ImGuiHelpers.GlobalScale + spacing.Y);
-            var note = _serverManager.GetNoteForUid(new Guid(_pair.UserData.publicUserID));
+            var note = _serverManager.GetNoteForUid(_pair.UserData.publicUserID);
             if (!string.IsNullOrEmpty(note))
             {
                 UiSharedService.ColorText(note, ImGuiColors.DalamudGrey);

@@ -54,7 +54,7 @@ public class IdDisplayHandler
             {
                 if (_editIsUid)
                 {
-                    _serverManager.SetNoteForUid(new Guid(_editEntry), _editComment, save: true);
+                    _serverManager.SetNoteForUid(_editEntry, _editComment, save: true);
                 }
                 else
                 {
@@ -140,7 +140,7 @@ public class IdDisplayHandler
             {
                 if (_editIsUid)
                 {
-                    _serverManager.SetNoteForUid(new Guid(_editEntry), _editComment, save: true);
+                    _serverManager.SetNoteForUid(_editEntry, _editComment, save: true);
                 }
                 else
                 {
@@ -164,7 +164,7 @@ public class IdDisplayHandler
             ImGui.SetNextItemWidth(editBoxWidth.Invoke());
             if (ImGui.InputTextWithHint("##" + pair.UserData.publicUserID, "Nick/Notes", ref _editComment, 255, ImGuiInputTextFlags.EnterReturnsTrue))
             {
-                _serverManager.SetNoteForUid(new Guid(pair.UserData.publicUserID), _editComment);
+                _serverManager.SetNoteForUid(pair.UserData.publicUserID, _editComment);
                 _serverManager.SaveNotes();
                 _editEntry = string.Empty;
             }
@@ -205,7 +205,7 @@ public class IdDisplayHandler
     {
         var textIsUid = true;
         bool showUidInsteadOfName = ShowUidInsteadOfName(pair);
-        string? playerText = _serverManager.GetNoteForUid(new Guid(pair.UserData.publicUserID));
+        string? playerText = _serverManager.GetNoteForUid(pair.UserData.publicUserID);
         if (!showUidInsteadOfName && playerText != null)
         {
             if (string.IsNullOrEmpty(playerText))

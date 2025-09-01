@@ -172,7 +172,7 @@ public class Pair
 
     public string? GetNote()
     {
-        return _serverConfigurationManager.GetNoteForUid(new Guid(UserData.publicUserID));
+        return _serverConfigurationManager.GetNoteForUid(UserData.publicUserID);
     }
 
     public string GetPlayerNameHash()
@@ -206,7 +206,7 @@ public class Pair
 
     public void SetNote(string note)
     {
-        _serverConfigurationManager.SetNoteForUid(new Guid(UserData.publicUserID), note);
+        _serverConfigurationManager.SetNoteForUid(UserData.publicUserID, note);
     }
 
     internal void SetIsUploading()

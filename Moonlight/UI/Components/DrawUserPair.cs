@@ -308,10 +308,10 @@ public class DrawUserPair
         if (_syncedGroups.Any()) ImGui.Separator();
         foreach (var entry in _syncedGroups)
         {
-            bool selfIsOwner = string.Equals(_apiController.PublicUserID, entry.Owner.publicUserID.ToString(), StringComparison.Ordinal);
+            bool selfIsOwner = string.Equals(_apiController.PublicUserID, entry.Owner.publicUserID, StringComparison.Ordinal);
             bool selfIsModerator = entry.GroupUserInfo.IsModerator();
-            bool userIsModerator = entry.GroupPairUserInfos.TryGetValue(new Guid(_pair.UserData.publicUserID), out var modinfo) && modinfo.IsModerator();
-            bool userIsPinned = entry.GroupPairUserInfos.TryGetValue(new Guid(_pair.UserData.publicUserID), out var info) && info.IsPinned();
+            bool userIsModerator = Guid.TryParse(_pair.UserData.publicUserID, out var mid) && entry.GroupPairUserInfos.TryGetValue(mid, out var modinfo) && modinfo.IsModerator();
+            bool userIsPinned = Guid.TryParse(_pair.UserData.publicUserID, out var pid) && entry.GroupPairUserInfos.TryGetValue(pid, out var info) && info.IsPinned();
             if (selfIsOwner || selfIsModerator)
             {
                 var groupNote = _serverConfigurationManager.GetNoteForGid(entry.GID);
@@ -470,12 +470,12 @@ public class DrawUserPair
         {
             var icon = FontAwesomeIcon.None;
             var text = string.Empty;
-            if (string.Equals(_currentGroup.OwnerUID.ToString(), _pair.UserData.publicUserID.ToString(), StringComparison.Ordinal))
+            if (string.Equals(_currentGroup.OwnerUID.ToString(), _pair.UserData.publicUserID, StringComparison.Ordinal))
             {
                 icon = FontAwesomeIcon.Crown;
                 text = "User is owner of this syncshell";
             }
-            else if (_currentGroup.GroupPairUserInfos.TryGetValue(new Guid(_pair.UserData.publicUserID), out var userinfo))
+            else if (Guid.TryParse(_pair.UserData.publicUserID, out var guid) && _currentGroup.GroupPairUserInfos.TryGetValue(guid, out var userinfo))
             {
                 if (userinfo.IsModerator())
                 {
@@ -527,7 +527,7 @@ public class DrawUserPair
             if (_uiSharedService.IconTextButton(FontAwesomeIcon.Thumbtack, pinText, _menuWidth, true))
             {
                 ImGui.CloseCurrentPopup();
-                if (!group.GroupPairUserInfos.TryGetValue(new Guid(_pair.UserData.publicUserID), out var userinfo))
+                if (!(Guid.TryParse(_pair.UserData.publicUserID, out var g1) && group.GroupPairUserInfos.TryGetValue(g1, out var userinfo)))
                 {
                     userinfo = MoonLight.API.Data.Enum.GroupPairUserInfo.IsPinned;
                 }
@@ -563,7 +563,7 @@ public class DrawUserPair
             if (_uiSharedService.IconTextButton(FontAwesomeIcon.UserShield, modText, _menuWidth, true) && UiSharedService.CtrlPressed())
             {
                 ImGui.CloseCurrentPopup();
-                if (!group.GroupPairUserInfos.TryGetValue(new Guid(_pair.UserData.publicUserID), out var userinfo))
+                if (!(Guid.TryParse(_pair.UserData.publicUserID, out var g2) && group.GroupPairUserInfos.TryGetValue(g2, out var userinfo)))
                 {
                     userinfo = MoonLight.API.Data.Enum.GroupPairUserInfo.IsModerator;
                 }

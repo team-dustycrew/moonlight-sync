@@ -112,7 +112,7 @@ public class StandaloneProfileUi : WindowMediatorSubscriberBase
             ImGui.EndChildFrame();
 
             ImGui.SetCursorPosY(postDummy);
-            var note = _serverManager.GetNoteForUid(new Guid(Pair.UserData.publicUserID));
+            var note = _serverManager.GetNoteForUid(Pair.UserData.publicUserID);
             if (!string.IsNullOrEmpty(note))
             {
                 UiSharedService.ColorText(note, ImGuiColors.DalamudGrey);

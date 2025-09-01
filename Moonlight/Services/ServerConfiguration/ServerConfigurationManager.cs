@@ -288,6 +288,12 @@ public class ServerConfigurationManager
         _serverTagConfig.Save();
     }
 
+    // String-based overloads for tag operations (publicUserID may not be a GUID)
+    internal void AddTagForUid(string uid, string tagName)
+    {
+        if (Guid.TryParse(uid, out var parsed)) AddTagForUid(parsed, tagName);
+    }
+
     internal bool ContainsOpenPairTag(string tag)
     {
         return CurrentServerTagStorage().OpenPairTags.Contains(tag);
@@ -301,6 +307,11 @@ public class ServerConfigurationManager
         }
 
         return false;
+    }
+
+    internal bool ContainsTag(string uid, string tag)
+    {
+        return Guid.TryParse(uid, out var parsed) && ContainsTag(parsed, tag);
     }
 
     internal void DeleteServer(ServerStorage selectedServer)
@@ -336,6 +347,12 @@ public class ServerConfigurationManager
         return null;
     }
 
+    // Convenience overloads for string-based UIDs (publicUserID may not be a GUID)
+    internal string? GetNoteForUid(string uid)
+    {
+        return Guid.TryParse(uid, out var parsed) ? GetNoteForUid(parsed) : null;
+    }
+
     internal HashSet<string> GetServerAvailablePairTags()
     {
         return CurrentServerTagStorage().ServerAvailablePairTags;
@@ -359,6 +376,11 @@ public class ServerConfigurationManager
         }
 
         return false;
+    }
+
+    internal bool HasTags(string uid)
+    {
+        return Guid.TryParse(uid, out var parsed) && HasTags(parsed);
     }
 
     internal void RemoveCharacterFromServer(int serverSelectionIndex, Authentication item)
@@ -399,6 +421,11 @@ public class ServerConfigurationManager
         }
     }
 
+    internal void RemoveTagForUid(string uid, string tagName, bool save = true)
+    {
+        if (Guid.TryParse(uid, out var parsed)) RemoveTagForUid(parsed, tagName, save);
+    }
+
     internal void RenameTag(string oldName, string newName)
     {
         CurrentServerTagStorage().ServerAvailablePairTags.Remove(oldName);
@@ -429,6 +456,13 @@ public class ServerConfigurationManager
 
         CurrentNotesStorage().UidServerComments[uid] = note;
         if (save) _notesConfig.Save();
+    }
+
+    // Convenience overload that safely handles non-GUID publicUserID strings
+    internal void SetNoteForUid(string uid, string note, bool save = true)
+    {
+        if (!Guid.TryParse(uid, out var parsed)) return;
+        SetNoteForUid(parsed, note, save);
     }
 
     internal void AutoPopulateNoteForUid(Guid uid, string note)

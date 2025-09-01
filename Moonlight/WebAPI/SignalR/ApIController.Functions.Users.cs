@@ -91,10 +91,13 @@ public partial class ApiController
 
     public async Task UserSetPairPermissions(UserPermissionsDto userPermissions)
     {
-        await SetBulkPermissions(new(new()
+        if (Guid.TryParse(userPermissions.User.publicUserID, out var parsed))
         {
-                { new Guid(userPermissions.User.publicUserID), userPermissions.Permissions }
+            await SetBulkPermissions(new(new()
+            {
+                { parsed, userPermissions.Permissions }
             }, new())).ConfigureAwait(false);
+        }
     }
 
     public async Task UserSetProfile(UserProfileDto userDescription)
