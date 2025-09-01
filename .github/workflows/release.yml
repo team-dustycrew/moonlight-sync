@@ -224,6 +224,10 @@ jobs:
                 if ($entry.PSObject.Properties.Name -contains 'DownloadLinkUpdate') { $entry.DownloadLinkUpdate = $dlUrl; $changed = $true }
                 else { Add-Member -InputObject $entry -NotePropertyName DownloadLinkUpdate -NotePropertyValue $dlUrl -Force; $changed = $true }
                 if ($entry.PSObject.Properties.Name -contains 'DownloadLinkTesting') { $entry.DownloadLinkTesting = $dlUrl; $changed = $true }
+                # Update LastUpdate to current Unix epoch seconds (as string)
+                $epoch = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds().ToString()
+                if ($entry.PSObject.Properties.Name -contains 'LastUpdate') { $entry.LastUpdate = $epoch; $changed = $true }
+                else { Add-Member -InputObject $entry -NotePropertyName LastUpdate -NotePropertyValue $epoch -Force; $changed = $true }
               }
             }
 
