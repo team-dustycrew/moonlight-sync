@@ -49,15 +49,13 @@ jobs:
         run: |
           # Read current version from csproj
           [xml]$c = Get-Content Moonlight/Moonlight.csproj
-          $pgs = @($c.Project.PropertyGroup)
-          $versionNode = $null
-          foreach ($pg in $pgs) {
-            if ($pg.Version) { $versionNode = $pg.Version; break }
-          }
+          $versionNode = $c.SelectSingleNode('/Project/PropertyGroup/Version')
+          if ($null -eq $versionNode) { $versionNode = $c.SelectSingleNode('//Version') }
           if ($null -eq $versionNode) {
             # Create <Version> in the first PropertyGroup if missing
             $versionNode = $c.CreateElement('Version')
-            [void]$pgs[0].AppendChild($versionNode)
+            $firstPg = $c.SelectSingleNode('/Project/PropertyGroup')
+            [void]$firstPg.AppendChild($versionNode)
             $versionNode.InnerText = '0.0.0.0'
           }
           $v = [string]$versionNode.InnerText
@@ -181,9 +179,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           # Build release asset URLs from artifacts
-          $assetPaths = @()
-          $multi = @"${{ steps.artifacts.outputs.files }}"@
-          $assetPaths = $multi -split "`n" | Where-Object { $_ -and (Test-Path $_) }
+          $assetPaths = "${{ steps.artifacts.outputs.files }}".Split(@("`r`n","`n","`r"), [System.StringSplitOptions]::RemoveEmptyEntries) |
+            ForEach-Object { $_.Trim() } | Where-Object { $_ -and (Test-Path $_) }
           if (-not $assetPaths) {
             Write-Error 'No artifacts to build URLs from.'
             exit 1
