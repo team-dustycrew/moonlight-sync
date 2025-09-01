@@ -207,8 +207,10 @@ jobs:
             }
 
             $arr = $null
+            $hasPluginsProp = $false
             if ($data.PSObject.Properties.Name -contains 'Plugins' -and ($data.Plugins -is [System.Collections.IEnumerable])) {
               $arr = $data.Plugins
+              $hasPluginsProp = $true
             } elseif ($data -is [System.Collections.IEnumerable]) {
               $arr = $data
             } else {
@@ -232,7 +234,11 @@ jobs:
             }
 
             if ($changed) {
-              $json = $data | ConvertTo-Json -Depth 100
+              if ($hasPluginsProp) {
+                $json = $data | ConvertTo-Json -Depth 100
+              } else {
+                $json = $arr | ConvertTo-Json -Depth 100
+              }
               Set-Content -Path $pmPath -Value $json -NoNewline
             }
           } else {
