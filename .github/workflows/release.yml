@@ -162,7 +162,6 @@ jobs:
           files: ${{ steps.artifacts.outputs.files }}
 
       - name: Update dustyplugins (AssemblyVersion and download links)
-        if: steps.tag_exists.outputs.exists == 'false'
         shell: pwsh
         env:
           API_READ_TOKEN: ${{ secrets.API_READ_TOKEN }}
@@ -189,32 +188,45 @@ jobs:
           $firstAsset = $assetNames[0]
           $dlUrl = "https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/$firstAsset"
 
-          # Find and update plugin manifest entries (JSON) that match Moonlight
+          # Update dustyplugins/pluginmaster.json specifically
           $changed = $false
-          $jsonFiles = Get-ChildItem -Recurse -Include *.json | Where-Object { $_.FullName -notmatch 'node_modules' }
-          foreach ($jf in $jsonFiles) {
+          $pmPath = Join-Path (Get-Location) 'pluginmaster.json'
+          if (Test-Path $pmPath) {
             try {
-              $raw = Get-Content $jf.FullName -Raw
+              $raw = Get-Content $pmPath -Raw
               $data = $raw | ConvertFrom-Json -ErrorAction Stop
+            } catch {
+              Write-Error 'Failed to parse pluginmaster.json'
+              exit 1
             }
-            catch { continue }
 
-            $save = $false
-            if ($data -is [System.Collections.IEnumerable]) {
-              foreach ($entry in $data) {
-                if ($entry.InternalName -eq 'Moonlight' -or $entry.Name -match 'Moonlight') {
-                  if ($entry.PSObject.Properties.Name -contains 'AssemblyVersion') { $entry.AssemblyVersion = '${{ steps.version.outputs.version }}'; $save = $true }
-                  if ($entry.PSObject.Properties.Name -contains 'DownloadLinkInstall') { $entry.DownloadLinkInstall = $dlUrl; $save = $true }
-                  if ($entry.PSObject.Properties.Name -contains 'DownloadLinkUpdate') { $entry.DownloadLinkUpdate = $dlUrl; $save = $true }
-                  if ($entry.PSObject.Properties.Name -contains 'DownloadLinkTesting') { $entry.DownloadLinkTesting = $dlUrl; $save = $true }
-                }
-              }
-              if ($save) {
-                $json = $data | ConvertTo-Json -Depth 100
-                Set-Content -Path $jf.FullName -Value $json -NoNewline
-                $changed = $true
+            $arr = $null
+            if ($data.PSObject.Properties.Name -contains 'Plugins' -and ($data.Plugins -is [System.Collections.IEnumerable])) {
+              $arr = $data.Plugins
+            } elseif ($data -is [System.Collections.IEnumerable]) {
+              $arr = $data
+            } else {
+              $arr = @($data)
+            }
+
+            foreach ($entry in $arr) {
+              if ($entry.InternalName -eq 'Moonlight' -or $entry.Name -match 'Moonlight') {
+                if ($entry.PSObject.Properties.Name -contains 'AssemblyVersion') { $entry.AssemblyVersion = '${{ steps.version.outputs.version }}'; $changed = $true }
+                else { Add-Member -InputObject $entry -NotePropertyName AssemblyVersion -NotePropertyValue '${{ steps.version.outputs.version }}' -Force; $changed = $true }
+                if ($entry.PSObject.Properties.Name -contains 'DownloadLinkInstall') { $entry.DownloadLinkInstall = $dlUrl; $changed = $true }
+                else { Add-Member -InputObject $entry -NotePropertyName DownloadLinkInstall -NotePropertyValue $dlUrl -Force; $changed = $true }
+                if ($entry.PSObject.Properties.Name -contains 'DownloadLinkUpdate') { $entry.DownloadLinkUpdate = $dlUrl; $changed = $true }
+                else { Add-Member -InputObject $entry -NotePropertyName DownloadLinkUpdate -NotePropertyValue $dlUrl -Force; $changed = $true }
+                if ($entry.PSObject.Properties.Name -contains 'DownloadLinkTesting') { $entry.DownloadLinkTesting = $dlUrl; $changed = $true }
               }
             }
+
+            if ($changed) {
+              $json = $data | ConvertTo-Json -Depth 100
+              Set-Content -Path $pmPath -Value $json -NoNewline
+            }
+          } else {
+            Write-Host 'pluginmaster.json not found at repo root; skipping.'
           }
 
           if ($changed) {
