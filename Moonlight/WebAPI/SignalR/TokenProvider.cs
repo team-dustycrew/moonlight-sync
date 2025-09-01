@@ -127,8 +127,8 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
             {
                 _logger.LogDebug("GetNewToken: Requesting");
 
-                // Build the authentication endpoint URI
-                tokenUri = MoonLightAuth.AuthFullPath(new Uri(_serverManager.CurrentApiUrl
+                // Build the authentication endpoint URI (use renew endpoint for initial token as well)
+                tokenUri = MoonLightAuth.RenewTokenFullPath(new Uri(_serverManager.CurrentApiUrl
                     .Replace("wss://", "https://", StringComparison.OrdinalIgnoreCase)
                     .Replace("ws://", "http://", StringComparison.OrdinalIgnoreCase)));
 
@@ -154,7 +154,7 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
                 _logger.LogDebug("GetNewToken: Renewal");
 
                 // Build the token renewal endpoint URI
-                tokenUri = MoonLightAuth.AuthFullPath(new Uri(_serverManager.CurrentApiUrl
+                tokenUri = MoonLightAuth.RenewTokenFullPath(new Uri(_serverManager.CurrentApiUrl
                     .Replace("wss://", "https://", StringComparison.OrdinalIgnoreCase)
                     .Replace("ws://", "http://", StringComparison.OrdinalIgnoreCase)));
 
@@ -172,8 +172,10 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
 
             // Read the response content (should be the JWT token)
             response = await result.Content.ReadAsStringAsync().ConfigureAwait(false);
+
             // Ensure the HTTP request was successful
             result.EnsureSuccessStatusCode();
+
             // Cache the new token
             _tokenCache[identifier] = response;
         }
@@ -189,11 +191,15 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
             {
                 // Show appropriate error message based on whether this was a renewal or new token request
                 if (isRenewal)
+                {
                     Mediator.Publish(new NotificationMessage("Error refreshing token", "Your authentication token could not be renewed. Try reconnecting to Moonlight manually.",
                     NotificationType.Error));
+                }
                 else
+                {
                     Mediator.Publish(new NotificationMessage("Error generating token", "Your authentication token could not be generated. Check Moonlights Main UI (/Moonlight in chat) to see the error message.",
                     NotificationType.Error));
+                }
 
                 // Publish disconnection event
                 Mediator.Publish(new DisconnectedMessage());
@@ -259,10 +265,7 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
                     ?? throw new InvalidOperationException("Requested SecretKey but received null");
 
             // Create secret key-based identifier
-            jwtIdentifier = new(_serverManager.CurrentApiUrl,
-                                playerIdentifier,
-                                string.Empty,
-                                secretKey);
+            jwtIdentifier = new(_serverManager.CurrentApiUrl, playerIdentifier, string.Empty, secretKey);
             // Cache the identifier for future fallback use
             _lastJwtIdentifier = jwtIdentifier;
         }
