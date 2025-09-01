@@ -2,11 +2,11 @@ name: Build and Release (release branch only)
 
 on:
   push:
-    branches: [ release ]  # only run on Release Branch
+    branches: [release] # only run on Release Branch
 
 jobs:
   build_release:
-    if: github.ref == 'refs/heads/release'  # extra guard for manual runs
+    if: github.ref == 'refs/heads/release' && github.actor != 'github-actions[bot]' # extra guards
     runs-on: windows-latest
     permissions:
       contents: write
@@ -38,18 +38,61 @@ jobs:
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: "9.0.x"
           cache: true
           cache-dependency-path: |
             **/packages.lock.json
 
-      - name: Read plugin version from csproj
+      - name: Determine next version (4-part) and update csproj
         id: version
         shell: pwsh
         run: |
+          # Read current version from csproj
           [xml]$c = Get-Content Moonlight/Moonlight.csproj
-          $v = $c.Project.PropertyGroup.Version
-          "version=$v" >> $env:GITHUB_OUTPUT
+          $v = [string]$c.Project.PropertyGroup.Version
+          if (-not $v) { throw "Moonlight.csproj <Version> property not found" }
+
+          # Normalize to 4 parts
+          $parts = $v.Split('.')
+          if ($parts.Length -lt 4) {
+            while ($parts.Length -lt 4) { $parts += '0' }
+          }
+          $major = [int]$parts[0]
+          $minor = [int]$parts[1]
+          $patch = [int]$parts[2]
+          $rev = [int]$parts[3]
+
+          # Discover highest existing tag for this MAJOR.MINOR.PATCH
+          $prefix = "v$major.$minor.$patch."
+          $tags = git tag --list "$prefix*"
+          if ($tags) {
+            $maxRev = 0
+            foreach ($t in $tags) {
+              $tv = $t.TrimStart('v')
+              $tparts = $tv.Split('.')
+              if ($tparts.Length -ge 4) {
+                $tryRev = 0
+                if ([int]::TryParse($tparts[3], [ref]$tryRev)) {
+                  if ($tryRev -gt $maxRev) { $maxRev = $tryRev }
+                }
+              }
+            }
+            $rev = $maxRev + 1
+          }
+          else {
+            # First release for this patch level -> reset rev
+            $rev = 0
+          }
+
+          $next = "$major.$minor.$patch.$rev"
+
+          # Write back to csproj only if changed
+          if ($v -ne $next) {
+            $c.Project.PropertyGroup.Version = $next
+            $c.Save('Moonlight/Moonlight.csproj')
+          }
+
+          "version=$next" >> $env:GITHUB_OUTPUT
 
       - name: Check if version tag exists
         id: tag_exists
@@ -78,6 +121,20 @@ jobs:
           if (-not $z) { throw "No package (.zip) found in Release output." }
           "files=$($z -join "`n")" >> $env:GITHUB_OUTPUT
 
+      - name: Commit version bump to repo
+        if: steps.tag_exists.outputs.exists == 'false'
+        shell: bash
+        run: |
+          if git diff --quiet Moonlight/Moonlight.csproj; then
+            echo "No version changes to commit."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add Moonlight/Moonlight.csproj
+            git commit -m "chore(release): bump version to ${{ steps.version.outputs.version }}"
+            git push origin HEAD:release
+          fi
+
       - name: Create/force tag
         if: steps.tag_exists.outputs.exists == 'false'
         shell: bash
@@ -94,6 +151,69 @@ jobs:
           prerelease: ${{ contains(steps.version.outputs.version, '-') }}
           generate_release_notes: true
           files: ${{ steps.artifacts.outputs.files }}
+
+      - name: Update dustyplugins (AssemblyVersion and download links)
+        if: steps.tag_exists.outputs.exists == 'false'
+        shell: pwsh
+        env:
+          API_READ_TOKEN: ${{ secrets.API_READ_TOKEN }}
+        run: |
+          if (-not $env:API_READ_TOKEN) {
+            Write-Host 'No API_READ_TOKEN secret set; skipping dustyplugins update.'
+            exit 0
+          }
+
+          # Checkout dustyplugins repo
+          git clone https://x-access-token:$env:API_READ_TOKEN@github.com/team-dustycrew/dustyplugins.git dustyplugins
+          cd dustyplugins
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Build release asset URLs from artifacts
+          $assetPaths = @()
+          $multi = @"${{ steps.artifacts.outputs.files }}"@
+          $assetPaths = $multi -split "`n" | Where-Object { $_ -and (Test-Path $_) }
+          if (-not $assetPaths) {
+            Write-Error 'No artifacts to build URLs from.'
+            exit 1
+          }
+          $assetNames = $assetPaths | ForEach-Object { [System.IO.Path]::GetFileName($_) }
+          $firstAsset = $assetNames[0]
+          $dlUrl = "https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/$firstAsset"
+
+          # Find and update plugin manifest entries (JSON) that match Moonlight
+          $changed = $false
+          $jsonFiles = Get-ChildItem -Recurse -Include *.json | Where-Object { $_.FullName -notmatch 'node_modules' }
+          foreach ($jf in $jsonFiles) {
+            try {
+              $raw = Get-Content $jf.FullName -Raw
+              $data = $raw | ConvertFrom-Json -ErrorAction Stop
+            }
+            catch { continue }
+
+            $save = $false
+            if ($data -is [System.Collections.IEnumerable]) {
+              foreach ($entry in $data) {
+                if ($entry.InternalName -eq 'Moonlight' -or $entry.Name -match 'Moonlight') {
+                  if ($entry.PSObject.Properties.Name -contains 'AssemblyVersion') { $entry.AssemblyVersion = '${{ steps.version.outputs.version }}'; $save = $true }
+                  if ($entry.PSObject.Properties.Name -contains 'DownloadLinkInstall') { $entry.DownloadLinkInstall = $dlUrl; $save = $true }
+                  if ($entry.PSObject.Properties.Name -contains 'DownloadLinkUpdate') { $entry.DownloadLinkUpdate = $dlUrl; $save = $true }
+                  if ($entry.PSObject.Properties.Name -contains 'DownloadLinkTesting') { $entry.DownloadLinkTesting = $dlUrl; $save = $true }
+                }
+              }
+              if ($save) {
+                $json = $data | ConvertTo-Json -Depth 100
+                Set-Content -Path $jf.FullName -Value $json -NoNewline
+                $changed = $true
+              }
+            }
+          }
+
+          if ($changed) {
+            git add .
+            git commit -m "chore(moonlight): bump AssemblyVersion to ${{ steps.version.outputs.version }} and update download links"
+            git push
+          }
 
       - name: Notify Discord (webhook)
         if: success() && steps.tag_exists.outputs.exists == 'false'

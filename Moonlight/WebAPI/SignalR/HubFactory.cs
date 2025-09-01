@@ -177,6 +177,10 @@ public class HubFactory : MediatorSubscriberBase
         })
         .Build();
 
+        // Make connection less sensitive to transient silence and keep proxies alive
+        _instance.ServerTimeout = TimeSpan.FromSeconds(120);
+        _instance.KeepAliveInterval = TimeSpan.FromSeconds(15);
+
         // Subscribe to connection events for mediator notifications
         _instance.Closed += HubOnClosed;
         _instance.Reconnecting += HubOnReconnecting;

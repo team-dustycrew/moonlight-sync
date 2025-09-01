@@ -511,7 +511,12 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
             // Perform health check
             try
             {
-                _ = await CheckClientHealth().ConfigureAwait(false);
+                var ok = await CheckClientHealth().ConfigureAwait(false);
+                if (!ok)
+                {
+                    Logger.LogWarning("Health check reported not connected; skipping stop");
+                    continue;
+                }
             }
             catch (HubException ex) when (ex.Message?.IndexOf("unauthorized", StringComparison.OrdinalIgnoreCase) >= 0)
             {

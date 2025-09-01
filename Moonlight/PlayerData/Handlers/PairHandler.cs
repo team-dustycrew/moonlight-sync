@@ -16,6 +16,8 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using Enum_ObjectKind = MoonLight.API.Data.Enum.ObjectKind;
 using ObjectKind = MoonLight.API.Data.Enum.ObjectKind;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Moonlight.PlayerData.Handlers;
 
@@ -64,7 +66,7 @@ public sealed class PairHandler : DisposableMediatorSubscriberBase
         _fileDbManager = fileDbManager;
         _playerPerformanceService = playerPerformanceService;
         _serverConfigManager = serverConfigManager;
-        _penumbraCollection = _ipcManager.Penumbra.CreateTemporaryCollectionAsync(logger, new Guid(Pair.UserData.publicUserID)).ConfigureAwait(false).GetAwaiter().GetResult();
+        _penumbraCollection = _ipcManager.Penumbra.CreateTemporaryCollectionAsync(logger, GetGuidOrStableFromString(Pair.UserData.publicUserID)).ConfigureAwait(false).GetAwaiter().GetResult();
 
         Mediator.Subscribe<FrameworkUpdateMessage>(this, (_) => FrameworkUpdate());
         Mediator.Subscribe<ZoneSwitchStartMessage>(this, (_) =>
@@ -75,7 +77,7 @@ public sealed class PairHandler : DisposableMediatorSubscriberBase
         });
         Mediator.Subscribe<PenumbraInitializedMessage>(this, (_) =>
         {
-            _penumbraCollection = _ipcManager.Penumbra.CreateTemporaryCollectionAsync(logger, new Guid(Pair.UserData.publicUserID)).ConfigureAwait(false).GetAwaiter().GetResult();
+            _penumbraCollection = _ipcManager.Penumbra.CreateTemporaryCollectionAsync(logger, GetGuidOrStableFromString(Pair.UserData.publicUserID)).ConfigureAwait(false).GetAwaiter().GetResult();
             if (!IsVisible && _charaHandler != null)
             {
                 PlayerName = string.Empty;
@@ -107,6 +109,14 @@ public sealed class PairHandler : DisposableMediatorSubscriberBase
         });
 
         LastAppliedDataBytes = -1;
+    }
+
+    private static Guid GetGuidOrStableFromString(string value)
+    {
+        if (Guid.TryParse(value, out var parsed)) return parsed;
+        var bytes = Encoding.UTF8.GetBytes(value);
+        var hash = MD5.HashData(bytes);
+        return new Guid(hash);
     }
 
     public bool IsVisible
@@ -571,8 +581,10 @@ public sealed class PairHandler : DisposableMediatorSubscriberBase
         PlayerName = name;
         _charaHandler = _gameObjectHandlerFactory.Create(ObjectKind.Player, () => _dalamudUtil.GetPlayerCharacterFromCachedTableByIdent(Pair.Ident), isWatched: false).GetAwaiter().GetResult();
 
-        _serverConfigManager.AutoPopulateNoteForUid(new Guid(Pair.UserData.publicUserID), name);
-        _serverConfigManager.AutoPopulateNoteForUid(new Guid(Pair.UserData.publicUserID), name);
+        if (Guid.TryParse(Pair.UserData.publicUserID, out var parsedUid))
+            _serverConfigManager.AutoPopulateNoteForUid(parsedUid, name);
+        if (Guid.TryParse(Pair.UserData.publicUserID, out var parsedUid2))
+            _serverConfigManager.AutoPopulateNoteForUid(parsedUid2, name);
 
         Mediator.Subscribe<HonorificReadyMessage>(this, async (_) =>
         {
