@@ -118,20 +118,23 @@ public class HubFactory : MediatorSubscriberBase
     {
         // Determine transport types based on server configuration
         // Fall back through transport types in order of preference
+        // MessagePack uses Binary transfer format; ServerSentEvents does not support Binary.
+        // Always exclude ServerSentEvents from the allowed transports to avoid runtime failures
+        // like: "The transport does not support the 'Binary' transfer format."
         var transportType = _serverConfigurationManager.GetTransport() switch
         {
-            HttpTransportType.None => HttpTransportType.WebSockets | HttpTransportType.ServerSentEvents | HttpTransportType.LongPolling,
-            HttpTransportType.WebSockets => HttpTransportType.WebSockets | HttpTransportType.ServerSentEvents | HttpTransportType.LongPolling,
-            HttpTransportType.ServerSentEvents => HttpTransportType.ServerSentEvents | HttpTransportType.LongPolling,
+            HttpTransportType.None => HttpTransportType.WebSockets | HttpTransportType.LongPolling,
+            HttpTransportType.WebSockets => HttpTransportType.WebSockets | HttpTransportType.LongPolling,
+            HttpTransportType.ServerSentEvents => HttpTransportType.LongPolling, // force LP instead of SSE
             HttpTransportType.LongPolling => HttpTransportType.LongPolling,
-            _ => HttpTransportType.WebSockets | HttpTransportType.ServerSentEvents | HttpTransportType.LongPolling
+            _ => HttpTransportType.WebSockets | HttpTransportType.LongPolling
         };
 
         // Wine has compatibility issues with WebSockets, so fall back to other transports
         if (_isWine && !_serverConfigurationManager.CurrentServer.ForceWebSockets && transportType.HasFlag(HttpTransportType.WebSockets))
         {
-            Logger.LogDebug("Wine detected, falling back to ServerSentEvents / LongPolling");
-            transportType = HttpTransportType.ServerSentEvents | HttpTransportType.LongPolling;
+            Logger.LogDebug("Wine detected, forcing LongPolling (SSE incompatible with MessagePack Binary)");
+            transportType = HttpTransportType.LongPolling;
         }
 
         Logger.LogDebug("Building new HubConnection using transport {transport}", transportType);
@@ -163,27 +166,6 @@ public class HubFactory : MediatorSubscriberBase
             {
                 Logger.LogWarning("No mNet API key configured; SignalR negotiation will likely be unauthorized");
             }
-        })
-        // Configure MessagePack protocol with compression and custom resolvers
-        .AddMessagePackProtocol(opt =>
-        {
-            // Create composite resolver with various formatters for different data types
-            var resolver = CompositeResolver.Create(StandardResolverAllowPrivate.Instance,
-                BuiltinResolver.Instance,
-                AttributeFormatterResolver.Instance,
-                // replace enum resolver
-                DynamicEnumAsStringResolver.Instance,
-                DynamicGenericResolver.Instance,
-                DynamicUnionResolver.Instance,
-                DynamicObjectResolver.Instance,
-                PrimitiveObjectResolver.Instance,
-                // final fallback(last priority)
-                StandardResolver.Instance);
-
-            // Configure serialization options with LZ4 compression
-            opt.SerializerOptions = MessagePackSerializerOptions.Standard
-                    .WithCompression(MessagePackCompression.Lz4Block)
-                    .WithResolver(resolver);
         })
         // Configure automatic reconnection with custom retry policy
         .WithAutomaticReconnect(new ForeverRetryPolicy(Mediator))
