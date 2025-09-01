@@ -189,8 +189,9 @@ jobs:
             Write-Error 'No artifacts to build URLs from.'
             exit 1
           }
-          $assetNames = $assetPaths | ForEach-Object { [System.IO.Path]::GetFileName($_) }
+          $assetNames = @($assetPaths | ForEach-Object { [System.IO.Path]::GetFileName($_) })
           $firstAsset = $assetNames[0]
+          if (-not $firstAsset -or -not $firstAsset.EndsWith('.zip')) { $firstAsset = 'latest.zip' }
           $dlUrl = "https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/$firstAsset"
 
           # Update dustyplugins/pluginmaster.json specifically
