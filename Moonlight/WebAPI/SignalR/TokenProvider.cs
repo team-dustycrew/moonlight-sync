@@ -363,4 +363,17 @@ public sealed class TokenProvider : IDisposable, IMediatorSubscriber
     }
 
     // OAuth refresh removed
+
+    /// <summary>
+    /// Forces a renewal of the current JWT token, ignoring any cached value.
+    /// </summary>
+    /// <param name="ct">Cancellation token for the operation</param>
+    /// <returns>The refreshed JWT token</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the identifier cannot be created</exception>
+    public async Task<string> ForceRenewToken(CancellationToken ct)
+    {
+        var identifier = await GetIdentifier().ConfigureAwait(false) ?? throw new InvalidOperationException("No identifier available for token renewal");
+        _logger.LogDebug("ForceRenewToken: Forcing renewal");
+        return await GetNewToken(isRenewal: true, identifier, ct).ConfigureAwait(false);
+    }
 }

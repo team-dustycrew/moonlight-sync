@@ -146,26 +146,9 @@ public class HubFactory : MediatorSubscriberBase
             options.AccessTokenProvider = () => _tokenProvider.GetOrUpdateToken(ct);
             options.Transports = transportType;
 
-            // Always add API key header for negotiation/authentication
-            var apiKey = _serverConfigurationManager.GetMNetKey();
-            if (string.IsNullOrEmpty(apiKey) == false)
-            {
-                // Sanitize API key to prevent header injection
-                apiKey = apiKey.Replace("\r", string.Empty).Replace("\n", string.Empty);
-                options.Headers.Add("X-MNet-Key", apiKey);
-                // Ensure header presence and log each outgoing negotiate/connect request
-                options.HttpMessageHandlerFactory = (inner) => new HeaderInjectingHandler(inner, apiKey, Logger);
-                // Ensure header is also present on WebSocket upgrade
-                options.WebSocketConfiguration = ws =>
-                {
-                    try { ws.SetRequestHeader("X-MNet-Key", apiKey); }
-                    catch { /* ignore */ }
-                };
-            }
-            else
-            {
-                Logger.LogWarning("No mNet API key configured; SignalR negotiation will likely be unauthorized");
-            }
+            // Use only JWT for hub auth; do not include X-MNet-Key on negotiate/WS.
+            // Keep a handler to ensure negotiate POSTs include minimal JSON content.
+            options.HttpMessageHandlerFactory = (inner) => new HeaderInjectingHandler(inner, string.Empty, Logger);
         })
         // Configure automatic reconnection with custom retry policy
         .WithAutomaticReconnect(new ForeverRetryPolicy(Mediator))
@@ -229,10 +212,7 @@ public class HubFactory : MediatorSubscriberBase
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             // Inject the API key header if it's not already present and we have a valid key
-            if (request.Headers.Contains("X-MNet-Key") == false && string.IsNullOrEmpty(_apiKey) == false)
-            {
-                request.Headers.TryAddWithoutValidation("X-MNet-Key", _apiKey);
-            }
+            // Disabled: do not send X-MNet-Key on SignalR negotiate/WS
 
             // Some servers expect a JSON body for negotiate requests, even if empty
             // This ensures compatibility with SignalR negotiate endpoints that require content
@@ -246,7 +226,7 @@ public class HubFactory : MediatorSubscriberBase
             }
 
             // Log without exposing header values
-            _logger.LogTrace("SignalR HTTP {method} {uri} (auth header present: {present})", request.Method, request.RequestUri, request.Headers.Contains("X-MNet-Key"));
+            _logger.LogTrace("SignalR HTTP {method} {uri}", request.Method, request.RequestUri);
 
             // Continue with the request using the base handler
             return base.SendAsync(request, cancellationToken);
