@@ -16,17 +16,19 @@ public class FileTransferOrchestrator : DisposableMediatorSubscriberBase
     private readonly HttpClient _httpClient;
     private readonly MoonlightConfigService _moonlightConfig;
     private readonly Moonlight.Services.ServerConfiguration.ServerConfigurationManager _serverConfigurationManager;
+    private readonly TokenProvider _tokenProvider;
     private readonly object _semaphoreModificationLock = new();
     private int _availableDownloadSlots;
     private SemaphoreSlim _downloadSemaphore;
     private int CurrentlyUsedDownloadSlots => _availableDownloadSlots - _downloadSemaphore.CurrentCount;
 
     public FileTransferOrchestrator(ILogger<FileTransferOrchestrator> logger, MoonlightConfigService moonlightConfig,
-        MoonlightMediator mediator, Moonlight.Services.ServerConfiguration.ServerConfigurationManager serverConfigurationManager, HttpClient httpClient) : base(logger, mediator)
+        MoonlightMediator mediator, Moonlight.Services.ServerConfiguration.ServerConfigurationManager serverConfigurationManager, HttpClient httpClient, TokenProvider tokenProvider) : base(logger, mediator)
     {
         _moonlightConfig = moonlightConfig;
         _serverConfigurationManager = serverConfigurationManager;
         _httpClient = httpClient;
+        _tokenProvider = tokenProvider;
         var ver = Assembly.GetExecutingAssembly().GetName().Version;
         _httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Moonlight", ver!.Major + "." + ver!.Minor + "." + ver!.Build));
 
@@ -145,13 +147,23 @@ public class FileTransferOrchestrator : DisposableMediatorSubscriberBase
 
     private async Task<HttpResponseMessage> SendRequestInternalAsync(HttpRequestMessage requestMessage, CancellationToken? ct = null, HttpCompletionOption httpCompletionOption = HttpCompletionOption.ResponseContentRead)
     {
-        // Use API key header instead of Bearer tokens
-        var key = _serverConfigurationManager.GetMNetKey();
-        if (string.IsNullOrEmpty(key) == false)
+        // Use Authorization: Bearer <jwt> for REST APIs
+        var _ct = ct ?? new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token;
+        string? jwt = null;
+        try
         {
-            if (requestMessage.Headers.Contains("X-MNet-Key")) requestMessage.Headers.Remove("X-MNet-Key");
-            requestMessage.Headers.Add("X-MNet-Key", key);
+            jwt = await _tokenProvider.GetOrUpdateToken(_ct).ConfigureAwait(false);
         }
+        catch
+        {
+            // fall back to no auth; caller should handle 401 reactively
+        }
+        if (!string.IsNullOrEmpty(jwt))
+        {
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwt);
+        }
+        // Remove legacy header if present
+        if (requestMessage.Headers.Contains("X-MNet-Key")) requestMessage.Headers.Remove("X-MNet-Key");
 
         if (requestMessage.Content != null && requestMessage.Content is not StreamContent && requestMessage.Content is not ByteArrayContent)
         {
@@ -165,9 +177,45 @@ public class FileTransferOrchestrator : DisposableMediatorSubscriberBase
 
         try
         {
-            if (ct != null)
-                return await _httpClient.SendAsync(requestMessage, httpCompletionOption, ct.Value).ConfigureAwait(false);
-            return await _httpClient.SendAsync(requestMessage, httpCompletionOption).ConfigureAwait(false);
+            var response = ct != null
+                ? await _httpClient.SendAsync(requestMessage, httpCompletionOption, ct.Value).ConfigureAwait(false)
+                : await _httpClient.SendAsync(requestMessage, httpCompletionOption).ConfigureAwait(false);
+
+            // Reactive fallback: on 401, try once to renew token and retry
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                Logger.LogWarning("401 received for {uri}, attempting token renewal and retry", requestMessage.RequestUri);
+                try
+                {
+                    var renewed = await _tokenProvider.ForceRenewToken(ct ?? new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token).ConfigureAwait(false);
+                    // rebuild request to avoid disposed content streams
+                    using var retry = new HttpRequestMessage(requestMessage.Method, requestMessage.RequestUri);
+                    retry.Headers.Authorization = new AuthenticationHeaderValue("Bearer", renewed);
+                    if (requestMessage.Content != null)
+                    {
+                        // If original content is JSON, re-create from string; otherwise, forward as-is when possible
+                        if (requestMessage.Content is JsonContent)
+                        {
+                            var json = await ((JsonContent)requestMessage.Content).ReadAsStringAsync().ConfigureAwait(false);
+                            retry.Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                        }
+                        else if (requestMessage.Content is ByteArrayContent or StreamContent)
+                        {
+                            retry.Content = requestMessage.Content;
+                        }
+                    }
+                    response.Dispose();
+                    return ct != null
+                        ? await _httpClient.SendAsync(retry, httpCompletionOption, ct.Value).ConfigureAwait(false)
+                        : await _httpClient.SendAsync(retry, httpCompletionOption).ConfigureAwait(false);
+                }
+                catch (Exception exRenew)
+                {
+                    Logger.LogWarning(exRenew, "Token renewal failed for retry of {uri}", requestMessage.RequestUri);
+                }
+            }
+
+            return response;
         }
         catch (TaskCanceledException)
         {
