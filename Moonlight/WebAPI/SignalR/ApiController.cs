@@ -232,7 +232,11 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
     public async Task<bool> CheckClientHealth()
     {
         if (_moonlightHub == null || _moonlightHub.State != HubConnectionState.Connected)
+        {
+            Logger.LogWarning("Client health check failed, moonlight hub is null or not connected");
             return false;
+        }
+
         return await _moonlightHub.InvokeAsync<bool>(nameof(CheckClientHealth)).ConfigureAwait(false);
     }
 
