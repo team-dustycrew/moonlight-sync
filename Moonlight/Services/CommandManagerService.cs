@@ -42,7 +42,8 @@ public sealed class CommandManagerService : IDisposable
                 "\t /moonlight toggle on|off - Connects or disconnects to moonlight respectively" + Environment.NewLine +
                 "\t /moonlight gpose - Opens the moonlight Character Data Hub window" + Environment.NewLine +
                 "\t /moonlight analyze - Opens the moonlight Character Data Analysis window" + Environment.NewLine +
-                "\t /moonlight settings - Opens the moonlight Settings window"
+                "\t /moonlight settings - Opens the moonlight Settings window" + Environment.NewLine +
+                "\t /moonlight debug - Opens the Moonlight Transfer Debug window"
         });
     }
 
@@ -121,6 +122,10 @@ public sealed class CommandManagerService : IDisposable
         else if (string.Equals(splitArgs[0], "settings", StringComparison.OrdinalIgnoreCase))
         {
             _mediator.Publish(new UiToggleMessage(typeof(SettingsUi)));
+        }
+        else if (string.Equals(splitArgs[0], "debug", StringComparison.OrdinalIgnoreCase))
+        {
+            _mediator.Publish(new UiToggleMessage(typeof(TransferDebugUi)));
         }
     }
 }
