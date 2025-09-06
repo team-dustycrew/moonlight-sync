@@ -19,6 +19,7 @@ using Moonlight.Services.Mediator;
 using Moonlight.Services.ServerConfiguration;
 using Moonlight.WebAPI.SignalR;
 using Moonlight.WebAPI.SignalR.Utils;
+using Moonlight.Utils;
 
 
 namespace Moonlight.WebAPI;
@@ -119,6 +120,11 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
     /// The last received census update message containing character data
     /// </summary>
     private CensusUpdateMessage? _lastCensus;
+
+    /// <summary>
+    /// Last ident published to the server to avoid redundant sends.
+    /// </summary>
+    private string? _lastPublishedIdent;
 
     /// <summary>
     /// Initializes a new instance of the ApiController with all required dependencies.
@@ -376,6 +382,8 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
                 // Load initial data
                 await LoadIninitialPairsAsync().ConfigureAwait(false);
                 await LoadOnlinePairsAsync().ConfigureAwait(false);
+                // Publish our ident for presence pairing
+                await PublishOnlineIdentIfChangedAsync().ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -473,7 +481,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
     public Task<ConnectionDto> GetConnectionDto() => GetConnectionDtoAsync(true);
 
     /// <summary>
-    /// Gets the connection data transfer object from the server with option to publish connected event
+    /// Gets the connection data transfer object from the server with option to publish connected message
     /// </summary>
     /// <param name="publishConnected">Whether to publish a connected message via mediator</param>
     /// <returns>The connection DTO containing server and user information</returns>
@@ -553,6 +561,12 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
         {
             Logger.LogInformation("Not logging into {chara}, auto login disabled", charaName);
             _ = Task.Run(async () => await StopConnectionAsync(ServerState.NoAutoLogon).ConfigureAwait(false));
+        }
+
+        // If already connected (e.g., quick relog), publish ident again
+        if (IsConnected)
+        {
+            _ = Task.Run(PublishOnlineIdentIfChangedAsync);
         }
     }
 
@@ -706,6 +720,8 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
             await LoadIninitialPairsAsync().ConfigureAwait(false);
             await LoadOnlinePairsAsync().ConfigureAwait(false);
             Mediator.Publish(new ConnectedMessage(_connectionDto));
+            // Re-publish ident after reconnect
+            await PublishOnlineIdentIfChangedAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -789,9 +805,41 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
             Mediator.Publish(new DisconnectedMessage());
             _moonlightHub = null;
             _connectionDto = null;
+            _lastPublishedIdent = null;
         }
 
         ServerState = state;
+    }
+
+    /// <summary>
+    /// Computes the ident as SHA-256 hex of the current ContentId.
+    /// </summary>
+    private async Task<string> ComputeOnlineIdentAsync()
+    {
+        var cid = await _dalamudUtil.GetCIDAsync().ConfigureAwait(false);
+        return cid.ToString().GetHash256();
+    }
+
+    /// <summary>
+    /// Publishes UpdateOnlineIdent to the hub if changed. No-op if not connected.
+    /// </summary>
+    private async Task PublishOnlineIdentIfChangedAsync()
+    {
+        if (_moonlightHub == null || _moonlightHub.State != HubConnectionState.Connected) return;
+
+        try
+        {
+            var ident = await ComputeOnlineIdentAsync().ConfigureAwait(false);
+            if (string.Equals(ident, _lastPublishedIdent, StringComparison.Ordinal)) return;
+
+            await _moonlightHub.SendAsync("UpdateOnlineIdent", ident).ConfigureAwait(false);
+            _lastPublishedIdent = ident;
+            Logger.LogDebug("Published online ident {ident}", ident);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to publish online ident");
+        }
     }
 }
 #pragma warning restore MA0040
