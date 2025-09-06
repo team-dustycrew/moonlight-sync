@@ -620,7 +620,7 @@ public class DalamudUtilService : IHostedService, IMediatorSubscriber
                 {
                     _notUpdatedCharas.AddRange(_playerCharas.Keys);
 
-                    for (int i = 0; i < 200; i += 2)
+                    for (int i = 0; i < 200; i++)
                     {
                         var chara = _objectTable[i];
                         if (chara == null || chara.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player)

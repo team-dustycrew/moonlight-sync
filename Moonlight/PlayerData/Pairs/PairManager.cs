@@ -144,6 +144,8 @@ public sealed class PairManager : DisposableMediatorSubscriberBase
         var pair = _allClientPairs[dto.User];
         if (pair.HasCachedPlayer)
         {
+            if (!pair.IsPaused)
+                pair.ApplyLastReceivedData();
             RecreateLazy();
             return;
         }
@@ -162,6 +164,10 @@ public sealed class PairManager : DisposableMediatorSubscriberBase
         }
 
         pair.CreateCachedPlayer(dto);
+
+        // Immediately apply last received data when a cached player becomes available
+        if (!pair.IsPaused)
+            pair.ApplyLastReceivedData();
 
         RecreateLazy();
     }
