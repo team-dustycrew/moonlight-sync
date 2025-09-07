@@ -440,14 +440,14 @@ public class TopTabMenu
             {
                 _ = GlobalControlCountdown(10);
                 var bulkSyncshells = _pairManager.GroupPairs.Keys.OrderBy(g => g.GroupAliasOrGID, StringComparer.OrdinalIgnoreCase)
-                    .ToDictionary(g => g.Group.GID, g =>
+                    .ToDictionary(g => g.Group.GID.ToString(), g =>
                     {
                         var perm = g.GroupUserPermissions;
                         perm.SetDisableSounds(g.GroupPermissions.IsPreferDisableSounds());
                         perm.SetDisableAnimations(g.GroupPermissions.IsPreferDisableAnimations());
                         perm.SetDisableVFX(g.GroupPermissions.IsPreferDisableVFX());
                         return perm;
-                    });
+                    }, StringComparer.Ordinal);
 
                 _ = _apiController.SetBulkPermissions(new(new(), bulkSyncshells)).ConfigureAwait(false);
             }
@@ -528,10 +528,10 @@ public class TopTabMenu
                 _ = GlobalControlCountdown(10);
                 var bulkIndividualPairs = _pairManager.PairsWithGroups.Keys
                     .Where(g => g.IndividualPairStatus == IndividualPairStatus.Bidirectional)
-                    .ToDictionary(g => !g.UserPair.User.publicUserID.IsNullOrEmpty()? new Guid(g.UserPair.User.publicUserID) : Guid.Empty, g =>
+                    .ToDictionary(g => g.UserPair.User.publicUserID, g =>
                     {
                         return actEnable(g.UserPair.OwnPermissions);
-                    });
+                    }, StringComparer.Ordinal);
 
                 _ = _apiController.SetBulkPermissions(new(bulkIndividualPairs, new())).ConfigureAwait(false);
                 ImGui.CloseCurrentPopup();
@@ -542,10 +542,10 @@ public class TopTabMenu
                 _ = GlobalControlCountdown(10);
                 var bulkIndividualPairs = _pairManager.PairsWithGroups.Keys
                     .Where(g => g.IndividualPairStatus == IndividualPairStatus.Bidirectional)
-                    .ToDictionary(g => !g.UserPair.User.publicUserID.IsNullOrEmpty()? new Guid(g.UserPair.User.publicUserID) : Guid.Empty, g =>
+                    .ToDictionary(g => g.UserPair.User.publicUserID, g =>
                     {
                         return actDisable(g.UserPair.OwnPermissions);
-                    });
+                    }, StringComparer.Ordinal);
 
                 _ = _apiController.SetBulkPermissions(new(bulkIndividualPairs, new())).ConfigureAwait(false);
                 ImGui.CloseCurrentPopup();
@@ -566,10 +566,10 @@ public class TopTabMenu
                 _ = GlobalControlCountdown(10);
                 var bulkSyncshells = _pairManager.GroupPairs.Keys
                     .OrderBy(u => u.GroupAliasOrGID, StringComparer.OrdinalIgnoreCase)
-                    .ToDictionary(g => g.Group.GID, g =>
+                    .ToDictionary(g => g.Group.GID.ToString(), g =>
                     {
                         return actEnable(g.GroupUserPermissions);
-                    });
+                    }, StringComparer.Ordinal);
 
                 _ = _apiController.SetBulkPermissions(new(new(), bulkSyncshells)).ConfigureAwait(false);
                 ImGui.CloseCurrentPopup();
@@ -580,10 +580,10 @@ public class TopTabMenu
                 _ = GlobalControlCountdown(10);
                 var bulkSyncshells = _pairManager.GroupPairs.Keys
                     .OrderBy(u => u.GroupAliasOrGID, StringComparer.OrdinalIgnoreCase)
-                    .ToDictionary(g => g.Group.GID, g =>
+                    .ToDictionary(g => g.Group.GID.ToString(), g =>
                     {
                         return actDisable(g.GroupUserPermissions);
-                    });
+                    }, StringComparer.Ordinal);
 
                 _ = _apiController.SetBulkPermissions(new(new(), bulkSyncshells)).ConfigureAwait(false);
                 ImGui.CloseCurrentPopup();
