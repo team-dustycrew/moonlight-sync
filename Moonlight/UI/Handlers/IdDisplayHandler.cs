@@ -179,18 +179,19 @@ public class IdDisplayHandler
 
     public (bool isGid, string text) GetGroupText(GroupFullInfoDto group)
     {
-        var textIsGid = true;
-        bool showUidInsteadOfName = ShowGidInsteadOfName(group);
+        // If toggled, show the raw GID instead of alias/note
+        if (ShowGidInsteadOfName(group))
+        {
+            return (true, group.GID.ToString());
+        }
+
+        var textIsGid = false;
         string? groupText = _serverManager.GetNoteForGid(group.GID);
-        if (!showUidInsteadOfName && groupText != null)
+        if (groupText != null)
         {
             if (string.IsNullOrEmpty(groupText))
             {
                 groupText = group.GroupAliasOrGID;
-            }
-            else
-            {
-                textIsGid = false;
             }
         }
         else
@@ -203,18 +204,19 @@ public class IdDisplayHandler
 
     public (bool isUid, string text) GetPlayerText(Pair pair)
     {
-        var textIsUid = true;
-        bool showUidInsteadOfName = ShowUidInsteadOfName(pair);
+        // If toggled, show the raw UID explicitly
+        if (ShowUidInsteadOfName(pair))
+        {
+            return (true, pair.UserData.publicUserID);
+        }
+
+        var textIsUid = false;
         string? playerText = _serverManager.GetNoteForUid(pair.UserData.publicUserID);
-        if (!showUidInsteadOfName && playerText != null)
+        if (playerText != null)
         {
             if (string.IsNullOrEmpty(playerText))
             {
                 playerText = pair.UserData.AliasOrUID;
-            }
-            else
-            {
-                textIsUid = false;
             }
         }
         else
@@ -222,7 +224,7 @@ public class IdDisplayHandler
             playerText = pair.UserData.AliasOrUID;
         }
 
-        if (_moonlightConfigService.Current.ShowCharacterNameInsteadOfNotesForVisible && pair.IsVisible && !showUidInsteadOfName)
+        if (_moonlightConfigService.Current.ShowCharacterNameInsteadOfNotesForVisible && pair.IsVisible)
         {
             playerText = pair.PlayerName;
             textIsUid = false;

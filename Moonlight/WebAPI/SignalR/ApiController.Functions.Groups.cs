@@ -23,7 +23,7 @@ public partial class ApiController
         CheckConnection();
         await SetBulkPermissions(new(new(),
             new() {
-                { dto.Group.GID, dto.GroupPairPermissions }
+                { dto.Group.GID.ToString(), dto.GroupPairPermissions }
             })).ConfigureAwait(false);
     }
 

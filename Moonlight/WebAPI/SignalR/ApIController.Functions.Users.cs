@@ -75,7 +75,8 @@ public partial class ApiController
 
         try
         {
-            await _moonlightHub!.InvokeAsync(nameof(SetBulkPermissions), dto).ConfigureAwait(false);
+            // Use SendAsync for fire-and-forget hub methods that do not return a value
+            await _moonlightHub!.SendAsync(nameof(SetBulkPermissions), dto).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -91,13 +92,10 @@ public partial class ApiController
 
     public async Task UserSetPairPermissions(UserPermissionsDto userPermissions)
     {
-        if (Guid.TryParse(userPermissions.User.publicUserID, out var parsed))
+        await SetBulkPermissions(new(new(StringComparer.Ordinal)
         {
-            await SetBulkPermissions(new(new()
-            {
-                { parsed, userPermissions.Permissions }
-            }, new())).ConfigureAwait(false);
-        }
+            { userPermissions.User.publicUserID, userPermissions.Permissions }
+        }, new())).ConfigureAwait(false);
     }
 
     public async Task UserSetProfile(UserProfileDto userDescription)
